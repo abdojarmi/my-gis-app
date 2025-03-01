@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>نظام المعلومات الجغرافي - العطاوية</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.29/"></script>
+    <style>
+        html, body, #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+            direction: rtl; /* دعم اللغة العربية */
+        }
+        #layerListDiv {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+        #topBar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .esri-widget {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="topBar">نظام المعلومات الجغرافي - العطاوية | مشروع أكاديمي 2025</div>
+    <div id="viewDiv"></div>
+    <div id="layerListDiv"></div>
+
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/FeatureLayer",
+            "esri/widgets/LayerList",
+            "esri/widgets/Expand",
+            "esri/widgets/ScaleBar",
+            "esri/widgets/Search",
+            "esri/widgets/Locate",
+            "esri/widgets/Print",
+            "esri/widgets/Measurement"
+        ], function(Map, MapView, FeatureLayer, LayerList, Expand, ScaleBar, Search, Locate, Print, Measurement) {
+
+            // إنشاء الخريطة الأساسية
+            const map = new Map({
+                basemap: "streets-navigation-vector" // نوع خريطة الأساس
+            });
+
+            // إنشاء عرض الخريطة
+            const view = new MapView({
+                container: "viewDiv",
+                map: map,
+                center: [-8.4595, 32.0503], // إحداثيات العطاوية
+                zoom: 12
+            });
+
+            // إضافة طبقة البيانات المستضافة
+            const featureLayer = new FeatureLayer({
+                url: "https://services3.arcgis.com/VurngZmCQ0x5Z1uW/arcgis/rest/services/Attaouia_GeoData_wGs/FeatureServer",
+                title: "طبقات العطاوية",
+                outFields: ["*"],
+                popupTemplate: {
+                    title: "{اسم_الحقل}",
+                    content: "تفاصيل: {تفاصيل}"
+                }
+            });
+
+            // إضافة الطبقة إلى الخريطة
+            map.add(featureLayer);
+
+            // إنشاء قائمة الطبقات مع خيارات التحكم
+            const layerList = new LayerList({
+                view: view
+            });
+
+            const layerListExpand = new Expand({
+                view: view,
+                content: layerList,
+                expanded: true
+            });
+
+            view.ui.add(layerListExpand, "top-right");
+
+            // إضافة مقياس الرسم
+            const scaleBar = new ScaleBar({
+                view: view,
+                unit: "metric"
+            });
+            view.ui.add(scaleBar, "bottom-left");
+
+            // إضافة أداة البحث
+            const searchWidget = new Search({
+                view: view
+            });
+            view.ui.add(searchWidget, "top-right");
+
+            // إضافة أداة تحديد الموقع الجغرافي
+            const locateWidget = new Locate({
+                view: view
+            });
+            view.ui.add(locateWidget, "top-left");
+
+            // إضافة أداة الطباعة
+            const printWidget = new Print({
+                view: view,
+                printServiceUrl: "https://utility.arcgisonline.com/ArcGIS/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task"
+            });
+            view.ui.add(printWidget, "bottom-right");
+
+            // إضافة أداة القياس (المسطرة)
+            const measurementWidget = new Measurement({
+                view: view,
+                activeTool: "distance"
+            });
+            view.ui.add(measurementWidget, "bottom-right");
+
+        });
+    </script>
+</body>
+</html>
