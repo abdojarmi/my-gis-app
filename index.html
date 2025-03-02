@@ -8,18 +8,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body { margin: 0; font-family: Arial, sans-serif; }
-        #map { height: 100vh; width: 100vw; }
+        #map { height: 100vh; width: calc(100vw - 220px); /* عرض الخريطة يقل بمقدار عرض الشريط الجانبي */ float: left; } /* تجعل الخريطة تطفو إلى اليسار */
         #sidebar {
             position: absolute; top: 0; right: 0; background: white;
             width: 200px; height: 100vh; padding: 10px;
             border-left: 2px solid #ccc; box-shadow: -2px 0 10px rgba(0,0,0,0.3);
-            z-index: 1000;
+            z-index: 1000; /* تأكد من ظهور الشريط الجانبي فوق الرسالة */
         }
         #messageBox {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #f0f0f0; padding: 20px; border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0,0,0,0.3); text-align: center;
-            z-index: 1001;
+            z-index: 1001; /* تأكد من ظهور الرسالة فوق الخريطة */
         }
         #messageBox button { margin-top: 10px; }
         #printBtn {
@@ -66,6 +66,10 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+
+        document.getElementById('printBtn').addEventListener('click', function() {
+            window.print();
+        });
     </script>
 
     <script src="script.js"></script>
