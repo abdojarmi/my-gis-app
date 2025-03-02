@@ -17,6 +17,7 @@
             background: rgba(0, 0, 0, 0.8); color: white;
             padding: 20px; border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0,0,0,0.3); text-align: center;
+            display: block;
         }
         #messageBox button { margin-top: 10px; padding: 5px 15px; }
         #exportBtn {
@@ -26,11 +27,17 @@
         #exportBtn img {
             width: 40px; height: 40px;
         }
+        h1 {
+            text-align: center; font-weight: bold; font-size: 20px;
+        }
+        h3 {
+            text-align: center; font-weight: normal; font-size: 16px;
+        }
     </style>
 </head>
 <body>
-    <h1 style="text-align:center; font-weight:bold;">نظام المعلومات الجغرافية لجماعة العطاوية</h1>
-    <h3 style="text-align:center; font-weight:normal;">مشروع أكاديمي</h3>
+    <h1>نظام المعلومات الجغرافية لجماعة العطاوية</h1>
+    <h3>مشروع أكاديمي</h3>
     <div id="map"></div>
     <div id="sidebar">
         <h4>الطبقات</h4>
@@ -42,7 +49,7 @@
         <button onclick="document.getElementById('messageBox').style.display='none'">OK</button>
     </div>
     <script>
-        var map = L.map('map').setView([32.2222, -8.4558], 13);
+        var map = L.map('map').setView([31.8333, -7.3333], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
