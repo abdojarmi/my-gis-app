@@ -17,6 +17,7 @@
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #f0f0f0; padding: 20px; border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0,0,0,0.3); text-align: center;
+            z-index: 1001; /* تأكد من ظهور الرسالة فوق الخريطة */
         }
         #messageBox button { margin-top: 10px; }
         #exportBtn {
@@ -27,18 +28,20 @@
     </style>
 </head>
 <body>
+    <div id="messageBox">
+        <p>مرحبًا بكم في بوابة نظام المعلومات الجغرافية لجماعة العطاوية. هذا المشروع الأكاديمي هو جزء من رسالة الماستر للطالب عبدالواحد جيرمي تحت إشراف الأستاذ ميلود وشالة. في حالة وجود أي أخطاء في البيانات، يرجى التواصل معنا للإبلاغ عنها.</p>
+        <button onclick="document.getElementById('messageBox').style.display='none'">OK</button>
+    </div>
+
     <h1 style="text-align:center; font-weight:bold;">نظام المعلومات الجغرافية لجماعة العطاوية</h1>
     <h3 style="text-align:center; font-weight:normal;">مشروع أكاديمي</h3>
+
     <div id="map"></div>
     <div id="sidebar">
         <h4>الطبقات</h4>
         <ul id="layerList"></ul>
     </div>
     <button id="exportBtn">إخراج البيانات</button>
-    <div id="messageBox">
-        <p>مرحبًا بكم في بوابة نظام المعلومات الجغرافية لجماعة العطاوية. هذا المشروع الأكاديمي هو جزء من رسالة الماستر للطالب عبدالواحد جيرمي تحت إشراف الأستاذ ميلود وشالة. في حالة وجود أي أخطاء في البيانات، يرجى التواصل معنا للإبلاغ عنها.</p>
-        <button onclick="document.getElementById('messageBox').style.display='none'">OK</button>
-    </div>
 
     <script>
         // Initialize map
