@@ -1,7 +1,7 @@
-// إنشاء الخريطة وتحديد المركز ونسبة التكبير
+// إنشاء الخريطة وضبط الإحداثيات الأولية
 var map = L.map('map').setView([31.83, -7.36], 12);
 
-// إضافة طبقة OpenStreetMap إلى الخريطة
+// إضافة طبقة OpenStreetMap
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
@@ -9,7 +9,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // جلب بيانات GeoJSON من GitHub
 fetch('https://raw.githubusercontent.com/abdojarmi/my-gis-app/main/Attaouia_GeoData.geojson')
     .then(response => {
-        console.log("استجابة الطلب:", response);
         if (!response.ok) {
             throw new Error("فشل تحميل الملف: " + response.status);
         }
@@ -17,22 +16,25 @@ fetch('https://raw.githubusercontent.com/abdojarmi/my-gis-app/main/Attaouia_GeoD
     })
     .then(data => {
         console.log("بيانات GeoJSON:", data);
-        
-        // إضافة البيانات إلى الخريطة مع تنسيق الطبقة
+
+        // التأكد من أن البيانات تم تحميلها بشكل صحيح
+        if (!data || typeof data !== "object" || !data.features) {
+            throw new Error("بيانات GeoJSON غير صحيحة!");
+        }
+
+        // إضافة الطبقة للخريطة
         var geojsonLayer = L.geoJSON(data, {
-            style: {
-                color: "#3388ff", 
-                weight: 2,
-                opacity: 0.8
+            style: function (feature) {
+                return { color: "#3388ff", weight: 2, opacity: 0.8 };
             },
             onEachFeature: function (feature, layer) {
                 if (feature.properties) {
-                    layer.bindPopup("<b>اسم المنطقة:</b> " + feature.properties.name);
+                    layer.bindPopup("<b>المنطقة:</b> " + (feature.properties.name || "غير معروف"));
                 }
             }
         }).addTo(map);
 
-        // ضبط العرض لاحتواء جميع المعالم
+        // ضبط الخريطة لاحتواء جميع المعالم
         map.fitBounds(geojsonLayer.getBounds());
     })
     .catch(error => console.error('خطأ في تحميل GeoJSON:', error));
