@@ -11,53 +11,33 @@
             position: absolute; top: 0; right: 0; background: white;
             width: 200px; height: 100vh; padding: 10px;
             border-left: 2px solid #ccc; box-shadow: -2px 0 10px rgba(0,0,0,0.3);
-            overflow-y: auto;
         }
         #messageBox {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8); color: white;
-            padding: 20px; border-radius: 10px;
+            background: #f0f0f0; padding: 20px; border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0,0,0,0.3); text-align: center;
-            display: block;
         }
-        #messageBox button { margin-top: 10px; padding: 5px 15px; }
+        #messageBox button { margin-top: 10px; }
         #exportBtn {
             position: absolute; bottom: 10px; left: 10px;
-            background: none; border: none; cursor: pointer;
-        }
-        #exportBtn img {
-            width: 40px; height: 40px;
-        }
-        h1 {
-            text-align: center; font-weight: bold; font-size: 16px;
-        }
-        h3 {
-            text-align: center; font-weight: normal; font-size: 14px;
+            padding: 10px; background: #007bff; color: white;
+            border: none; border-radius: 5px; cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <h1>نظام المعلومات الجغرافية</h1>
-    <h3>مشروع أكاديمي</h3>
+    <h1 style="text-align:center; font-weight:bold;">نظام المعلومات الجغرافية لجماعة العطاوية</h1>
+    <h3 style="text-align:center; font-weight:normal;">مشروع أكاديمي</h3>
     <div id="map"></div>
     <div id="sidebar">
         <h4>الطبقات</h4>
         <ul id="layerList"></ul>
     </div>
-    <button id="exportBtn"><img src="https://cdn-icons-png.flaticon.com/512/3106/3106773.png" alt="إخراج"></button>
+    <button id="exportBtn">إخراج البيانات</button>
     <div id="messageBox">
         <p>مرحبًا بكم في بوابة نظام المعلومات الجغرافية لجماعة العطاوية. هذا المشروع الأكاديمي هو جزء من رسالة الماستر للطالب عبدالواحد جيرمي تحت إشراف الأستاذ ميلود وشالة. في حالة وجود أي أخطاء في البيانات، يرجى التواصل معنا للإبلاغ عنها.</p>
         <button onclick="document.getElementById('messageBox').style.display='none'">OK</button>
     </div>
-    <script>
-        var map = L.map('map').setView([31.8333, -7.3333], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-        
-        var layerControl = L.control.layers(null, null, { collapsed: false }).addTo(map);
-        var boundariesLayer = L.geoJSON(null).addTo(map);
-        layerControl.addOverlay(boundariesLayer, "حدود العطاوية");
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
