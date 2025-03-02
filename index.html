@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>نظام المعلومات الجغرافية لجماعة العطاوية</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -38,6 +39,17 @@
         <p>مرحبًا بكم في بوابة نظام المعلومات الجغرافية لجماعة العطاوية. هذا المشروع الأكاديمي هو جزء من رسالة الماستر للطالب عبدالواحد جيرمي تحت إشراف الأستاذ ميلود وشالة. في حالة وجود أي أخطاء في البيانات، يرجى التواصل معنا للإبلاغ عنها.</p>
         <button onclick="document.getElementById('messageBox').style.display='none'">OK</button>
     </div>
+
+    <script>
+        // Initialize map
+        var map = L.map('map').setView([31.8333, -7.3333], 10); // [خط العرض, خط الطول], مستوى التكبير
+
+        // Add tile layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+    </script>
+
     <script src="script.js"></script>
 </body>
 </html>
