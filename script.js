@@ -1,4 +1,4 @@
-fetch('https://raw.github.com/abdojarmi/my-gis-app/blob/f8b1a32f86ee1ca8bce61003d9e6723adde2a74c/Attaouia_GeoData.geojson')
+fetch('https://github.com/abdojarmi/my-gis-app/blob/f8b1a32f86ee1ca8bce61003d9e6723adde2a74c/Attaouia_GeoData.geojson')
   .then(response => {
       if (!response.ok) {
           throw new Error("لم يتم تحميل الملف بنجاح: " + response.status);
