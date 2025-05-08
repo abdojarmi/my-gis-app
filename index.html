@@ -1,64 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl"> <!-- تمت إضافة lang و dir للغة العربية -->
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- تمت إضافة viewport لضبط العرض على الأجهزة المختلفة -->
     <title>نظام المعلومات الجغرافية لجماعة العطاوية</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; }
-        #map { height: 100vh; width: 100vw; }
+        body {
+            margin: 0;
+            padding: 0; /* تمت إضافة padding: 0 لإزالة أي مسافات افتراضية */
+            font-family: Arial, sans-serif;
+            display: flex; /* استخدام Flexbox لتنسيق أفضل */
+            flex-direction: column; /* ترتيب العناصر عمودياً */
+            height: 100vh; /* جعل الصفحة تملأ ارتفاع الشاشة */
+            overflow: hidden; /* منع ظهور أشرطة تمرير غير ضرورية على body */
+        }
+        #header-container { /* حاوية للعناوين */
+            padding: 10px 0;
+            background-color: #f8f9fa; /* لون خلفية خفيف للعناوين */
+            border-bottom: 1px solid #dee2e6;
+            text-align: center; /* توسيط العناوين */
+        }
+        #header-container h1 {
+            margin: 0.5em 0 0.2em 0; /* تعديل الهوامش */
+            font-size: 1.8em; /* تعديل حجم الخط */
+        }
+        #header-container h3 {
+            margin: 0 0 0.5em 0; /* تعديل الهوامش */
+            font-weight: normal;
+            font-size: 1.1em; /* تعديل حجم الخط */
+            color: #6c757d; /* لون أغمق قليلاً للعنوان الفرعي */
+        }
+        #main-content { /* حاوية للمحتوى الرئيسي (الخريطة والشريط الجانبي) */
+            display: flex;
+            flex-grow: 1; /* لجعل هذا الجزء يملأ المساحة المتبقية */
+            overflow: hidden; /* مهم لمنع تداخل أشرطة التمرير */
+        }
+        #map {
+            flex-grow: 1; /* الخريطة تأخذ كل المساحة المتاحة */
+            height: 100%; /* الخريطة تملأ ارتفاع الحاوية الرئيسية */
+        }
         #sidebar {
-            position: absolute; top: 0; right: 0; background: white;
-            width: 200px; height: 100vh; padding: 10px;
-            border-left: 2px solid #ccc; box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+            width: 250px; /* عرض الشريط الجانبي */
+            background: white;
+            padding: 15px;
+            border-left: 1px solid #ccc; /* تم تغيير الحد ليكون أنعم */
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1); /* تم تعديل الظل ليكون أنعم */
+            box-sizing: border-box; /* لضمان أن padding لا يزيد العرض */
+            overflow-y: auto; /* شريط تمرير عمودي إذا زاد المحتوى */
+            display: flex;
+            flex-direction: column; /* ترتيب العناصر داخل الشريط الجانبي عمودياً */
+        }
+        #sidebar h4 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        #layerList {
+            list-style: none; /* إزالة نقاط القائمة */
+            padding: 0;
+            margin: 0;
+            flex-grow: 1; /* لجعل القائمة تملأ المساحة المتاحة في الشريط */
+        }
+        #layerList li {
+            padding: 8px 5px; /* تعديل الحشو */
+            border-bottom: 1px solid #f0f0f0; /* فاصل بين عناصر القائمة */
+            cursor: default;
+        }
+        #layerList li:last-child {
+            border-bottom: none; /* إزالة الحد السفلي لآخر عنصر */
         }
         #messageBox {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #f0f0f0; padding: 20px; border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.3); text-align: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #f8f9fa; /* لون خلفية متناسق */
+            padding: 25px; /* زيادة الحشو قليلاً */
+            border-radius: 8px; /* تعديل شكل الحواف */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* ظل أوضح */
+            text-align: center;
             z-index: 1001; /* تأكد من ظهور الرسالة فوق الخريطة */
+            max-width: 90%; /* حد أقصى للعرض لضمان التجاوب */
+            width: 400px; /* عرض افتراضي */
+            box-sizing: border-box;
         }
-        #messageBox button { margin-top: 10px; }
-        #exportBtn {
-            position: absolute; bottom: 10px; left: 10px;
-            padding: 10px; background: #007bff; color: white;
-            border: none; border-radius: 5px; cursor: pointer;
+        #messageBox p {
+            margin-top: 0;
+            margin-bottom: 15px; /* زيادة المسافة قبل الزر */
+            line-height: 1.6; /* تحسين قابلية القراءة */
+        }
+        #messageBox button {
+            padding: 10px 20px; /* تعديل حشو الزر */
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em; /* تعديل حجم خط الزر */
+        }
+        #messageBox button:hover {
+            background: #0056b3; /* لون عند المرور بالفأرة */
+        }
+        #exportBtn { /* تم نقل زر الإخراج إلى الشريط الجانبي لترتيب أفضل */
+            display: block; /* لجعله يأخذ عرض الشريط بالكامل */
+            width: calc(100% - 0px); /* يأخذ العرض الكامل داخل الشريط الجانبي */
+            padding: 12px;
+            margin-top: auto; /* يدفعه لأسفل الشريط الجانبي */
+            background: #28a745; /* لون أخضر للتصدير */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 1em;
+        }
+        #exportBtn:hover {
+            background: #218838;
         }
     </style>
 </head>
 <body>
-    <div id="messageBox">
-        <p>مرحبًا بكم في بوابة نظام المعلومات الجغرافية لجماعة العطاوية. هذا المشروع الأكاديمي هو جزء من رسالة الماستر للطالب عبدالواحد جيرمي تحت إشراف الأستاذ ميلود وشالة. في حالة وجود أي أخطاء في البيانات، يرجى التواصل معنا للإبلاغ عنها.</p>
-        <button onclick="document.getElementById('messageBox').style.display='none'">OK</button>
+    <div id="messageBox" style="display: block;"> <!-- جعل الرسالة ظاهرة افتراضياً -->
+        <p>مرحباً بكم في بوابة نظام المعلومات الجغرافية لجماعة العطاوية. هذا المشروع الأكاديمي هو جزء من رسالة الماستر للطالب عبدالواحد جيرمي تحت إشراف الأستاذ ميلود وشالة. في حالة وجود أي أخطاء في البيانات، يرجى التواصل معنا للإبلاغ عنها.</p>
+        <button onclick="document.getElementById('messageBox').style.display='none'">موافق</button> <!-- تم تغيير النص إلى "موافق" -->
     </div>
 
-    <h1 style="text-align:center; font-weight:bold;">نظام المعلومات الجغرافية لجماعة العطاوية</h1>
-    <h3 style="text-align:center; font-weight:normal;">مشروع أكاديمي</h3>
-       <div id="sidebar">
-        <h4>الطبقات</h4>
-        <ul id="layerList">
-            <il id="البنية التحتية والخدمات الأساسية ">
-            <il id="التقسيمات الإدارية">
-            <il id="الخدمات الأمنية">
-            <il id="الخدمات الأمنية">
-                  
-        </ul>
+    <div id="header-container">
+        <h1>نظام المعلومات الجغرافية لجماعة العطاوية</h1>
+        <h3>مشروع أكاديمي</h3>
     </div>
-    <div id="map"></div>
- 
-    <button id="exportBtn">إخراج البيانات</button>
 
-    <script>
-        // Initialize map
-        var map = L.map('map').setView([31.8333, -7.3333], 10); // [خط العرض, خط الطول], مستوى التكبير
+    <div id="main-content">
+        <div id="sidebar">
+            <h4>الطبقات</h4>
+            <ul id="layerList">
+                <!-- سيتم ملء هذه القائمة بواسطة script.js -->
+            </ul>
+            <button id="exportBtn">إخراج البيانات</button> <!-- زر الإخراج داخل الشريط الجانبي -->
+        </div>
+        <div id="map"></div>
+    </div>
 
-        // Add tile layer (OpenStreetMap)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-    </script>
-
+    <!-- لا يوجد هنا كود تهيئة الخريطة المباشر، سيتم ذلك بواسطة script.js -->
     <script src="script.js"></script>
 </body>
 </html>
