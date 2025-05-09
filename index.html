@@ -1,150 +1,222 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"> <!-- تمت إضافة lang و dir للغة العربية -->
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- تمت إضافة viewport لضبط العرض على الأجهزة المختلفة -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام المعلومات الجغرافية لجماعة العطاوية</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
     <style>
         body {
             margin: 0;
-            padding: 0; /* تمت إضافة padding: 0 لإزالة أي مسافات افتراضية */
-            font-family: Arial, sans-serif;
-            display: flex; /* استخدام Flexbox لتنسيق أفضل */
-            flex-direction: column; /* ترتيب العناصر عمودياً */
-            height: 100vh; /* جعل الصفحة تملأ ارتفاع الشاشة */
-            overflow: hidden; /* منع ظهور أشرطة تمرير غير ضرورية على body */
-        }
-        #header-container { /* حاوية للعناوين */
-            padding: 10px 0;
-            background-color: #f8f9fa; /* لون خلفية خفيف للعناوين */
-            border-bottom: 1px solid #dee2e6;
-            text-align: center; /* توسيط العناوين */
-        }
-        #header-container h1 {
-            margin: 0.5em 0 0.2em 0; /* تعديل الهوامش */
-            font-size: 1.8em; /* تعديل حجم الخط */
-        }
-        #header-container h3 {
-            margin: 0 0 0.5em 0; /* تعديل الهوامش */
-            font-weight: normal;
-            font-size: 1.1em; /* تعديل حجم الخط */
-            color: #6c757d; /* لون أغمق قليلاً للعنوان الفرعي */
-        }
-        #main-content { /* حاوية للمحتوى الرئيسي (الخريطة والشريط الجانبي) */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             display: flex;
-            flex-grow: 1; /* لجعل هذا الجزء يملأ المساحة المتبقية */
-            overflow: hidden; /* مهم لمنع تداخل أشرطة التمرير */
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden; /* لمنع تمرير الصفحة الرئيسية */
+        }
+        .main-header {
+            background-color: #f8f9fa; /* لون أفتح قليلاً */
+            padding: 15px 20px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .main-header h1 {
+            margin: 0;
+            font-size: 1.8em; /* أكبر قليلاً */
+            color: #343a40;
+        }
+        .main-header p {
+            margin: 5px 0 0;
+            font-size: 1em;
+            color: #6c757d;
+        }
+        .app-body {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        #map-container {
+            flex-grow: 1;
+            position: relative;
+            height: 100%; /* Ensure map container takes full height of app-body */
+            display: flex;
         }
         #map {
-            flex-grow: 1; /* الخريطة تأخذ كل المساحة المتاحة */
-            height: 100%; /* الخريطة تملأ ارتفاع الحاوية الرئيسية */
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
-        #sidebar {
-            width: 250px; /* عرض الشريط الجانبي */
-            background: white;
-            padding: 15px;
-            border-left: 1px solid #ccc; /* تم تغيير الحد ليكون أنعم */
-            box-shadow: -2px 0 5px rgba(0,0,0,0.1); /* تم تعديل الظل ليكون أنعم */
-            box-sizing: border-box; /* لضمان أن padding لا يزيد العرض */
-            overflow-y: auto; /* شريط تمرير عمودي إذا زاد المحتوى */
+        #left-controls-area {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
             display: flex;
-            flex-direction: column; /* ترتيب العناصر داخل الشريط الجانبي عمودياً */
+            flex-direction: column;
+            gap: 10px; /* مسافة بين عنصر التكبير ووسيلة الإيضاح */
         }
-        #sidebar h4 {
-            margin-top: 0;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
+        /* تنسيق عنصر التحكم بالتكبير والتصغير داخل الحاوية الجديدة */
+        #left-controls-area .leaflet-control-zoom {
+            margin-bottom: 0 !important; /* إزالة الهامش الافتراضي السفلي إذا لزم الأمر */
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4) !important;
+            border-radius: 5px !important;
         }
-        #layerList {
-            list-style: none; /* إزالة نقاط القائمة */
-            padding: 0;
-            margin: 0;
-            flex-grow: 1; /* لجعل القائمة تملأ المساحة المتاحة في الشريط */
+
+        /* وسيلة الإيضاح (سيتم تنسيقها في script.js أو هنا إذا تم إخراجها كـ HTML ثابت) */
+        #custom-legend {
+            background-color: rgba(255,255,255,0.95);
+            padding:10px;
+            border:1px solid #ccc;
+            max-height: calc(100vh - 150px); /* اضبط حسب الحاجة مع الأخذ في الاعتبار التكبير */
+            overflow-y:auto;
+            font-size:12px;
+            width: 260px;
+            border-radius: 5px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
         }
-        #layerList li {
-            padding: 8px 5px; /* تعديل الحشو */
-            border-bottom: 1px solid #f0f0f0; /* فاصل بين عناصر القائمة */
-            cursor: default;
+        #custom-legend h4 {
+            margin-top:0;
+            margin-bottom:10px;
+            text-align:center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            font-weight: bold;
         }
-        #layerList li:last-child {
-            border-bottom: none; /* إزالة الحد السفلي لآخر عنصر */
+        #custom-legend strong {
+            display: block;
+            margin-bottom: 5px;
+            padding-bottom: 3px;
+            font-weight: bold;
+            color: #333;
         }
-        #messageBox {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #f8f9fa; /* لون خلفية متناسق */
-            padding: 25px; /* زيادة الحشو قليلاً */
-            border-radius: 8px; /* تعديل شكل الحواف */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); /* ظل أوضح */
-            text-align: center;
-            z-index: 1001; /* تأكد من ظهور الرسالة فوق الخريطة */
-            max-width: 90%; /* حد أقصى للعرض لضمان التجاوب */
-            width: 400px; /* عرض افتراضي */
-            box-sizing: border-box;
+        #custom-legend::-webkit-scrollbar { width: 8px; }
+        #custom-legend::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        #custom-legend::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        #custom-legend::-webkit-scrollbar-thumb:hover { background: #555; }
+
+
+        #right-sidebar {
+            width: 300px;
+            min-width: 280px; /* حد أدنى للعرض */
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            overflow-y: hidden; /* يتم التحكم بالتمرير داخليا */
         }
-        #messageBox p {
-            margin-top: 0;
-            margin-bottom: 15px; /* زيادة المسافة قبل الزر */
-            line-height: 1.6; /* تحسين قابلية القراءة */
+        #layers-control-container {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+            flex-grow: 1; /* تأخذ المساحة المتاحة */
+            display: flex; /* لتوسيط محتوى التحكم */
+            flex-direction: column;
+            overflow: hidden; /* مهم لمنع التحكم بالطبقات من تجاوز الحاوية */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        #messageBox button {
-            padding: 10px 20px; /* تعديل حشو الزر */
-            background: #007bff;
+        /* تعديل مظهر متحكم الطبقات Leaflet Control داخل الحاوية الجديدة */
+        #layers-control-container .leaflet-control-layers {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            border: none !important;
+            width: 100% !important;
+            height: 100% !important; /* يملأ حاوية التحكم */
+            display: flex;
+            flex-direction: column;
+            background-color: transparent !important; /* الحاوية الرئيسية لها لون */
+        }
+         /* يجب أن يكون العنوان داخل .leaflet-control-layers وليس خارجه */
+        #layers-control-container .leaflet-control-layers-list {
+            flex-grow: 1; /* ليأخذ باقي المساحة بعد العنوان */
+            overflow-y: auto !important; /* السماح بالتمرير لقائمة الطبقات فقط */
+            padding: 0 10px 10px 10px; /* تباعد داخلي لقائمة الطبقات */
+        }
+        #layers-control-container .leaflet-control-layers-scrollbar::-webkit-scrollbar { width: 8px; }
+        #layers-control-container .leaflet-control-layers-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        #layers-control-container .leaflet-control-layers-scrollbar::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        #layers-control-container .leaflet-control-layers-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        .leaflet-control-layers-title { /* العنوان الذي يضاف بواسطة JS */
+            text-align:center;
+            padding:10px 0 10px 0;
+            border-bottom:1px solid #ccc;
+            margin-bottom:5px;
+            font-weight:bold;
+            background-color: white; /* ليتناسب مع لون التحكم */
+            flex-shrink: 0; /* لمنعه من التقلص */
+        }
+        .leaflet-control-layers-selector { /* لتنسيق مربعات الاختيار والتسميات */
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .leaflet-control-layers-selector input {
+             margin-left: 8px; /* المسافة بين مربع الاختيار والنص في RTL */
+        }
+
+
+        #export-button-container {
+            margin-top: auto; /* يدفع الزر للأسفل إذا كان هناك مساحة */
+            padding-top: 15px; /* مسافة فوق الزر */
+            border-top: 1px solid #eee; /* فاصل خفيف */
+        }
+        #export-button-container button {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1em; /* تعديل حجم خط الزر */
+            font-size: 1.05em;
+            font-weight: bold;
+            transition: background-color 0.2s ease-in-out;
         }
-        #messageBox button:hover {
-            background: #0056b3; /* لون عند المرور بالفأرة */
+        #export-button-container button:hover {
+            background-color: #218838;
         }
-        #exportBtn { /* تم نقل زر الإخراج إلى الشريط الجانبي لترتيب أفضل */
-            display: block; /* لجعله يأخذ عرض الشريط بالكامل */
-            width: calc(100% - 0px); /* يأخذ العرض الكامل داخل الشريط الجانبي */
-            padding: 12px;
-            margin-top: auto; /* يدفعه لأسفل الشريط الجانبي */
-            background: #28a745; /* لون أخضر للتصدير */
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-            font-size: 1em;
-        }
-        #exportBtn:hover {
-            background: #218838;
+
+        /* لتنسيقات SVG و text icons */
+        .custom-svg-div-icon, .custom-text-div-icon {
+            background: transparent !important;
+            border: none !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
         }
     </style>
 </head>
 <body>
-    <div id="messageBox" style="display: block;"> <!-- جعل الرسالة ظاهرة افتراضياً -->
-        <p>مرحباً بكم في بوابة نظام المعلومات الجغرافية لجماعة العطاوية. هذا المشروع الأكاديمي هو جزء من رسالة الماستر للطالب عبدالواحد جيرمي تحت إشراف الأستاذ ميلود وشالة. في حالة وجود أي أخطاء في البيانات، يرجى التواصل معنا للإبلاغ عنها.</p>
-        <button onclick="document.getElementById('messageBox').style.display='none'">موافق</button> <!-- تم تغيير النص إلى "موافق" -->
-    </div>
-
-    <div id="header-container">
+    <header class="main-header">
         <h1>نظام المعلومات الجغرافية لجماعة العطاوية</h1>
-        <h3>مشروع أكاديمي</h3>
-    </div>
-
-    <div id="main-content">
-        <div id="sidebar">
-            <h4>الطبقات</h4>
-            <ul id="layerList">
-                <!-- سيتم ملء هذه القائمة بواسطة script.js -->
-            </ul>
-            <button id="exportBtn">إخراج البيانات</button> <!-- زر الإخراج داخل الشريط الجانبي -->
+        <p>مشروع أكاديمي</p>
+    </header>
+    <div class="app-body">
+        <div id="map-container">
+            <div id="map"></div>
+            <div id="left-controls-area">
+                <!-- عنصر التحكم بالتكبير ووسيلة الإيضاح سيتم إضافتهما هنا بواسطة JS -->
+            </div>
         </div>
-        <div id="map"></div>
+        <div id="right-sidebar">
+            <div id="layers-control-container">
+                <!-- عنصر التحكم بالطبقات سيتم نقله هنا -->
+            </div>
+            <div id="export-button-container">
+                <button id="export-data-btn">إخراج البيانات</button>
+            </div>
+        </div>
     </div>
 
-    <!-- لا يوجد هنا كود تهيئة الخريطة المباشر، سيتم ذلك بواسطة script.js -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
     <script src="script.js"></script>
 </body>
 </html>
