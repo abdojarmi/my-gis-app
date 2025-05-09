@@ -1,5 +1,5 @@
 // ====================================================================================
-// GIS SCRIPT FOR ATTAOUIA - V5.1 (Road Network Styling Update)
+// GIS SCRIPT FOR ATTAOUIA - V5.2 (Styling Refinements & Legend Update)
 // ====================================================================================
 
 // 1. تهيئة الخريطة
@@ -23,9 +23,13 @@ const symbolLibrary = {
 };
 
 function createFeatureIcon(styleSettings = {}) {
+    if (!styleSettings) {
+        console.warn("createFeatureIcon called with null or undefined styleSettings. Using default pin.");
+        styleSettings = { symbol: 'pin', color: '#CCCCCC', size: 18 };
+    }
     if (styleSettings.type === 'text') {
-        const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${styleSettings.color || 'black'}; background-color:${styleSettings.backgroundColor || 'transparent'}; border:1px solid ${styleSettings.borderColor || 'transparent'}; border-radius:${styleSettings.borderRadius || '3px'}; padding:1px; text-align:center; white-space: nowrap;">${styleSettings.content}</div>`;
-        let iconWidth = (styleSettings.size || 16) * (String(styleSettings.content).length * 0.6) + 8;
+        const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${styleSettings.color || 'black'}; background-color:${styleSettings.backgroundColor || 'transparent'}; border:1px solid ${styleSettings.borderColor || 'transparent'}; border-radius:${styleSettings.borderRadius || '3px'}; padding:1px; text-align:center; white-space: nowrap;">${styleSettings.content || '?'}</div>`;
+        let iconWidth = (styleSettings.size || 16) * (String(styleSettings.content || '?').length * 0.6) + 8;
         if (String(styleSettings.content).includes('🚦') || String(styleSettings.content).includes('🛑') || String(styleSettings.content).includes('⚠️') || String(styleSettings.content).includes('⛔') || String(styleSettings.content).includes('🅿️')) iconWidth = (styleSettings.size || 16) + 8;
         let iconHeight = (styleSettings.size || 16) + 8;
         return L.divIcon({
@@ -39,7 +43,7 @@ function createFeatureIcon(styleSettings = {}) {
     const symbolKey = styleSettings.symbol;
     const symbol = symbolLibrary[symbolKey];
     if (!symbol || symbol.type !== 'svg') {
-        console.warn(`SVG Symbol '${symbolKey}' not found for style:`, styleSettings, `. Using default pin.`);
+        console.warn(`SVG Symbol '${symbolKey || 'undefined'}' not found for style:`, styleSettings, `. Using default pin.`);
         return createFeatureIcon({ symbol: 'pin', color: styleSettings.color || '#CCCCCC', size: styleSettings.size || 18 });
     }
 
@@ -59,88 +63,121 @@ function createFeatureIcon(styleSettings = {}) {
 
 
 const detailedStyles = {
-    "الصحة والمجال الاجتماعي": { /* ... (كما كان) ... */ },
-    "توزيع الماء والكهرباء": { /* ... (كما كان) ... */ },
-    "طبقة المباني": { /* ... (كما كان) ... */ },
-    "محطات الوقود": { /* ... (كما كان) ... */ },
-    "التعليم والتكوين وتشغيل الكفاءات": { /* ... (كما كان) ... */ },
-    "التشوير الطرقي": { /* ... (كما كان) ... */ },
-    "الخدمات الدينية": { /* ... (كما كان) ... */ },
-    "النقل": { /* ... (كما كان) ... */ },
-    "الامن والوقاية المدنية": { /* ... (كما كان) ... */ },
-    "المالية والجبايات": { /* ... (كما كان) ... */ },
-    "المرافق التجارية": { /* ... (كما كان) ... */ },
-    "الادارات الترابية": { /* ... (كما كان) ... */ },
-    "المرافق الرياضية والترفيهية": { /* ... (كما كان) ... */ },
-    // --- تعديل هنا ---
+    "الصحة والمجال الاجتماعي": {
+        displayName: "الصحة والمجال الاجتماعي",
+        subcategories: {
+            "اجتماعية": { displayName: "اجتماعية", style: { symbol: 'pin', color: '#FF6347', size: 20 } },
+            "صحية": { displayName: "صحية", style: { symbol: 'plusSign', color: '#4682B4', size: 22 } },
+            "_default_sub_style": { displayName: "(غير محدد)", style: { symbol: 'pin', color: '#FFC0CB', size: 18 } }
+        },
+        defaultPointStyle: { symbol: 'pin', color: '#FFC0CB', size: 18 }
+    },
+    "توزيع الماء والكهرباء": {
+        displayName: "توزيع الماء والكهرباء",
+        subcategories: {
+            "مكتب توزيع الماء والكهرباء": { displayName: "مكتب توزيع", style: { symbol: 'building', color: '#ADD8E6', size: 20 } },
+            "محطة معالجة المياه": { displayName: "محطة معالجة مياه", style: { symbol: 'circle', color: '#1E90FF', size: 20 } },
+            "خزان مياه": { displayName: "خزان مياه", style: { symbol: 'square', color: '#87CEFA', size: 18 } },
+            "محول كهرباء": { displayName: "محول كهرباء", style: { symbol: 'lightningBolt', color: '#FFD700', size: 20 } },
+            "_default_sub_style": { displayName: "(غير محدد)", style: { symbol: 'pin', color: '#B0E0E6', size: 18 } }
+        },
+        defaultPointStyle: { symbol: 'pin', color: '#B0E0E6', size: 18 }
+    },
+    "طبقة المباني": { // تفترض أن هذه مضلعات
+        displayName: "طبقة المباني",
+        subcategories: {
+            "خدماتي": { displayName: "خدماتي", styleConfig: { fillColor: "#BDB76B", color: "#8F8F8C", weight:1, fillOpacity: 0.6 } },
+            "سكني": { displayName: "سكني", styleConfig: { fillColor: "#A9A9A9", color: "#7E7E7E", weight:1, fillOpacity: 0.6 } },
+            "_default_sub_style": { displayName: "(غير محدد)", styleConfig: { fillColor: '#C0C0C0', color: '#959595', weight:1, fillOpacity: 0.5 } }
+        },
+        defaultLinePolyStyle: { fillColor: '#C0C0C0', color: '#959595', weight: 1, fillOpacity: 0.5 }
+    },
+    "محطات الوقود": { /* ... (كما كان, افترض أنها نقاط بسيطة) ... */ displayName: "محطات الوقود", defaultPointStyle: { symbol: 'pin', color: '#FF0000', size: 20 } },
+    "التعليم والتكوين وتشغيل الكفاءات": { /* ... (كما كان مع إضافة _default_sub_style) ... */ },
+    "التشوير الطرقي": { /* ... (كما كان مع إضافة _default_sub_style) ... */ },
+    "الخدمات الدينية": { /* ... (كما كان مع إضافة _default_sub_style) ... */ },
+    "النقل": { /* ... (كما كان مع إضافة _default_sub_style) ... */ },
+    "الامن والوقاية المدنية": { /* ... (كما كان مع إضافة _default_sub_style) ... */ },
+    "المالية والجبايات": { /* ... (كما كان مع إضافة _default_sub_style) ... */ },
+    "المرافق التجارية": { /* ... (كما كان, افترض أنها نقاط بسيطة) ... */ displayName: "المرافق التجارية", defaultPointStyle: { symbol: 'circle', color: '#8B4513', size: 18 } },
+    "الادارات الترابية": { /* ... (كما كان, افترض أنها نقاط بناء) ... */ displayName: "الإدارات الترابية", defaultPointStyle: { symbol: 'building', color: '#778899', size: 22 } },
+    "المرافق الرياضية والترفيهية": { /* ... (كما كان مع إضافة _default_sub_style) ... */ },
     "شبكة الطرق": {
         displayName: "شبكة الطرق",
         subcategories: {
-            "طريق رئيسية": { displayName: "طريق رئيسية", styleConfig: { color: "#000000", weight: 5, opacity: 0.9 } },
-            "طريق ثانوية": { displayName: "طريق ثانوية", styleConfig: { color: "#444444", weight: 4, opacity: 0.85 } },
-            "طريق ثلاثية": { displayName: "طريق ثلاثية", styleConfig: { color: "#777777", weight: 3, opacity: 0.8 } },
-            "طريق ريفية": { displayName: "طريق ريفية", styleConfig: { color: "#999999", weight: 2.5, dashArray: '5, 5', opacity: 0.75 } },
-            "ممر": { displayName: "ممر", styleConfig: { color: "#BBBBBB", weight: 2, opacity: 0.7 } },
-            "ممر مسدود": { displayName: "ممر مسدود", styleConfig: { color: "#FF0000", weight: 1.5, dashArray: '2, 4', opacity: 0.9 } },
-            "ممر الالتفاف": { displayName: "ممر الالتفاف", styleConfig: { color: "#008000", weight: 2, opacity: 0.8 } },
-            "جسر": { displayName: "جسر", styleConfig: { color: "#0000CD", weight: 3.5, lineCap: "butt", opacity: 0.9 } }, // زدت weight قليلاً للجسر
-            "مفترق دوار": { displayName: "مفترق دوار", styleConfig: { color: "#FFA500", weight: 2.5, opacity: 0.8 } },
-            "وصلة الخروج من المدارة": { displayName: "وصلة خروج مدارة", styleConfig: { color: "#DC143C", weight: 2, opacity: 0.8 } },
-            "وصلة الدخول إلى المدارة": { displayName: "وصلة دخول مدارة", styleConfig: { color: "#228B22", weight: 2, opacity: 0.8 } },
-            // هذا النمط سيستخدم إذا كان نوع الطريق موجودًا في البيانات ولكنه غير مدرج أعلاه
-            "_default_sub_style": { displayName: "طريق (نوع غير محدد)", styleConfig: { color: "#E0E0E0", weight: 1.5, dashArray: '3,3', opacity: 0.6 } }
+            "طريق رئيسية": { displayName: "طريق رئيسية", styleConfig: { color: "#d95f02", weight: 3.5, opacity: 0.9 } }, // برتقالي داكن
+            "طريق ثانوية": { displayName: "طريق ثانوية", styleConfig: { color: "#fdae61", weight: 2.5, opacity: 0.85 } }, // برتقالي فاتح
+            "طريق ثلاثية": { displayName: "طريق ثلاثية", styleConfig: { color: "#7570b3", weight: 2, opacity: 0.8 } },    // بنفسجي
+            "طريق ريفية": { displayName: "طريق ريفية", styleConfig: { color: "#66a61e", weight: 1.5, dashArray: '4, 4', opacity: 0.75 } }, // أخضر
+            "ممر": { displayName: "ممر", styleConfig: { color: "#A9A9A9", weight: 1, opacity: 0.7 } },                 // رمادي داكن
+            "ممر مسدود": { displayName: "ممر مسدود", styleConfig: { color: "#FF0000", weight: 1, dashArray: '2, 3', opacity: 0.9 } },
+            "ممر الالتفاف": { displayName: "ممر الالتفاف", styleConfig: { color: "#1f78b4", weight: 1.5, opacity: 0.8 } }, // أزرق
+            "جسر": { displayName: "جسر", styleConfig: { color: "#333333", weight: 3, lineCap: "butt", opacity: 0.9, dashArray: '1, 5', lineDashOffset: '0' } }, // أسود، مع خطوط قصيرة لإظهار أنه جسر
+            "مفترق دوار": { displayName: "مفترق دوار", styleConfig: { color: "#e7298a", weight: 2, opacity: 0.8 } },    // وردي
+            "وصلة الخروج من المدارة": { displayName: "وصلة خروج مدارة", styleConfig: { color: "#e6ab02", weight: 1.5, opacity: 0.8 } }, // أصفر داكن/ذهبي
+            "وصلة الدخول إلى المدارة": { displayName: "وصلة دخول مدارة", styleConfig: { color: "#e6ab02", weight: 1.5, opacity: 0.8 } },
+            "_default_sub_style": { displayName: "طريق (نوع غير محدد)", styleConfig: { color: "#CCCCCC", weight: 1, dashArray: '2,2', opacity: 0.6 } }
         },
-        defaultLinePolyStyle: { color: "#BEBEBE", weight: 2, opacity: 0.7 } // هذا النمط سيُستخدم إذا لم يُعثر على خاصية نوع الطريق أبدًا
+        defaultLinePolyStyle: { color: "#BEBEBE", weight: 1.5, opacity: 0.7 }
     },
-    "المناطق الخضراء والزراعة": { /* ... (كما كان) ... */ },
+    "المناطق الخضراء والزراعة": { /* ... (كما كان مع إضافة _default_sub_style للمضلعات) ... */ },
     "أحياء": { /* ... (كما كان) ... */ },
     "حدود إدارية العطاوية": { /* ... (كما كان) ... */ },
-    "طبقة غير مصنفة": { /* ... (كما كان) ... */ }
+    "طبقة غير مصنفة": {
+        displayName: "طبقة غير مصنفة",
+        defaultPointStyle: { symbol: 'pin', color: '#7f7f7f', size: 16 }, // رمادي
+        defaultLinePolyStyle: { color: "#999999", weight: 1.5, dashArray: '3,3', opacity: 0.6 } // رمادي متقطع
+    }
 };
-Object.entries(detailedStyles).forEach(([key, value]) => { // املأ الأقسام الناقصة
-    if(key !== "الصحة والمجال الاجتماعي") value.subcategories = value.subcategories || {};
-    if(key !== "الصحة والمجال الاجتماعي") value.defaultPointStyle = value.defaultPointStyle || { symbol: 'pin', color: '#999999', size: 16 };
-    if(key !== "الصحة والمجال الاجتماعي") value.defaultLinePolyStyle = value.defaultLinePolyStyle || { color: "#AAAAAA", weight: 2, dashArray: '4,4' };
+// التأكد من أن كل طبقة لها أنماط افتراضية إذا لم يتم تعريفها بشكل كامل
+Object.keys(detailedStyles).forEach(mainLayerKey => {
+    const layerConf = detailedStyles[mainLayerKey];
+    if (!layerConf.subcategories) layerConf.subcategories = {};
+    if (!layerConf.subcategories["_default_sub_style"]) {
+        if (mainLayerKey === "شبكة الطرق" || mainLayerKey === "طبقة المباني" || mainLayerKey === "المناطق الخضراء والزراعة" || mainLayerKey === "أحياء" || mainLayerKey === "حدود إدارية العطاوية") {
+            layerConf.subcategories["_default_sub_style"] = { displayName: "(نمط فرعي افتراضي)", styleConfig: { color: "#C0C0C0", weight: 1, opacity: 0.5, fillColor: "#D9D9D9", fillOpacity: 0.4 } };
+        } else {
+            layerConf.subcategories["_default_sub_style"] = { displayName: "(نمط فرعي افتراضي)", style: { symbol: 'circle', color: '#C0C0C0', size: 12 } };
+        }
+    }
+    if (!layerConf.defaultPointStyle && mainLayerKey !== "شبكة الطرق" && mainLayerKey !== "طبقة المباني" && mainLayerKey !== "المناطق الخضراء والزراعة" && mainLayerKey !== "أحياء" && mainLayerKey !== "حدود إدارية العطاوية") {
+        layerConf.defaultPointStyle = { symbol: 'pin', color: '#AAAAAA', size: 14 };
+    }
+    if (!layerConf.defaultLinePolyStyle && (mainLayerKey === "شبكة الطرق" || mainLayerKey === "طبقة المباني" || mainLayerKey === "المناطق الخضراء والزراعة" || mainLayerKey === "أحياء" || mainLayerKey === "حدود إدارية العطاوية")) {
+        layerConf.defaultLinePolyStyle = { color: "#BBBBBB", weight: 1, opacity: 0.6, fillColor: "#E0E0E0", fillOpacity: 0.3 };
+    }
 });
 
 
 // 3. دوال مساعدة
-// --- تعديل هنا ---
 function getLayerNameFromProperties(properties) {
     const knownMainLayers = Object.keys(detailedStyles).filter(k => k !== "طبقة غير مصنفة");
-    const directPropsToCheck = ['MainCategory', 'LayerGroup', 'اسم_الطبقة_الرئيسي', 'layer_name_principal', 'layer', 'LAYER'];
+    const directPropsToCheck = ['MainCategory', 'LayerGroup', 'اسم_الطبقة_الرئيسي', 'layer_name_principal', 'layer', 'LAYER', 'nom_couche']; // إضافة nom_couche
 
-    // 1. التحقق من معالم الطرق أولاً
     if (properties.fclass && typeof properties.fclass === 'string' && properties.fclass.trim() !== "") {
-        // أي معلم له خاصية fclass يعتبر جزءًا من شبكة الطرق
-        // التلوين الدقيق حسب نوع الطريق سيتم لاحقًا في دالة style
         return "شبكة الطرق";
     }
-    // تحقق من أسماء طبقات محتملة للطرق (عدّل هذه إذا لزم الأمر)
-    const roadLayerNames = ['RESEAU_ROUTIER', 'شبكة الطرق', 'Roads', 'Voirie'];
-    if (properties.LAYER && roadLayerNames.includes(String(properties.LAYER).trim())) {
+    const roadLayerNames = ['RESEAU_ROUTIER', 'شبكة الطرق', 'Roads', 'Voirie', 'ROUTES']; // إضافة ROUTES
+    if (properties.LAYER && roadLayerNames.includes(String(properties.LAYER).trim().toUpperCase())) { // .toUpperCase() لجعله غير حساس لحالة الأحرف
         return "شبكة الطرق";
     }
-    if (properties.layer && roadLayerNames.includes(String(properties.layer).trim())) {
+    if (properties.layer && roadLayerNames.includes(String(properties.layer).trim().toUpperCase())) {
         return "شبكة الطرق";
     }
-    // يمكنك إضافة المزيد من الشروط الخاصة لتحديد طبقة الطرق هنا
-    // مثال: if (properties.OBJECTID_1 && String(properties.OBJECTID_1).startsWith("ROUTE_")) return "شبكة الطرق";
+     if (properties.اسم_الطبقة && roadLayerNames.includes(String(properties.اسم_الطبقة).trim())) {
+        return "شبكة الطرق";
+    }
 
 
-    // 2. التحقق من الطبقات الرئيسية الأخرى
     for (const prop of directPropsToCheck) {
         if (properties[prop]) {
             let propValue = String(properties[prop]).trim();
-            // تصحيحات لأسماء طبقات شائعة
             if (propValue === "توزيع الماء والكهرباءة") propValue = "توزيع الماء والكهرباء";
             if (propValue === "التشويرالطرقي") propValue = "التشوير الطرقي";
-
             if (knownMainLayers.includes(propValue)) return propValue;
         }
     }
 
-    // 3. التحقق من خلال خاصية Path
     const pathString = properties.Path;
     if (pathString && typeof pathString === 'string' && pathString.trim() !== "") {
         const parts = pathString.split(/[\\\/]/);
@@ -152,19 +189,41 @@ function getLayerNameFromProperties(properties) {
             if (knownMainLayers.includes(potentialName)) return potentialName;
         }
     }
-
-    // 4. إذا لم يتم التصنيف
-    // console.log("خصائص معلم غير مصنف (getLayerNameFromProperties):", properties); // أبقِ هذا إذا كنت لا تزال ترى معالم غير مصنفة
+    // console.log("خصائص معلم غير مصنف (getLayerNameFromProperties):", properties);
     return "طبقة غير مصنفة";
 }
 
-function createPopupContent(properties, mainLayerName) { /* ... (نفس دالة createPopupContent من الرد السابق، تأكد أنها موجودة) ... */
-    let displayName = (detailedStyles[mainLayerName] && detailedStyles[mainLayerName].displayName) || mainLayerName;
-    let content = `<b>${properties.الاسم || properties.name || properties.Nom || 'معلم'}</b>`;
-    content += `<br><small><i>(${displayName})</i></small>`;
+function createPopupContent(properties, mainLayerName) {
+    const mainLayerDisplayName = (detailedStyles[mainLayerName] && detailedStyles[mainLayerName].displayName) || mainLayerName;
+    let content = `<b>${properties.الاسم || properties.name || properties.Nom || properties.NAME || 'معلم'}</b>`;
+    content += `<br><small><i>(${mainLayerDisplayName})</i></small>`;
+
+    // محاولة الحصول على اسم الفئة الفرعية من النمط المطبق إذا أمكن (للعرض في ال Popup)
+    const mainLayerConfig = detailedStyles[mainLayerName];
+    let subCategoryDisplayName = "";
+    if (mainLayerConfig && mainLayerConfig.subcategories) {
+        const subCategoryPropertyCandidates = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'fclass', 'TYPE_VOIE', 'road_type', 'classification']; // إضافة مرشحين
+        for (const propKey of subCategoryPropertyCandidates) {
+            if (properties[propKey]) {
+                const propValue = String(properties[propKey]).trim();
+                if (mainLayerConfig.subcategories[propValue] && mainLayerConfig.subcategories[propValue].displayName) {
+                    subCategoryDisplayName = mainLayerConfig.subcategories[propValue].displayName;
+                    break;
+                }
+            }
+        }
+    }
+    if (subCategoryDisplayName) {
+        content += `<br><small><i>النوع: ${subCategoryDisplayName}</i></small>`;
+    }
+
     for (const key in properties) {
         if (properties.hasOwnProperty(key) &&
-            !['Path', 'derived_main_layer', 'MainCategory', 'LayerGroup', 'OBJECTID', 'X', 'Y', 'Z', 'id', 'Shape_Length', 'Shape_Area', 'OBJECTID_1', 'layer_name_principal', 'LAYER', 'fclass'].includes(key) && // أضفت fclass هنا إذا كنت لا تريد عرضه
+            !['Path', 'derived_main_layer', 'MainCategory', 'LayerGroup', 'OBJECTID', 'X', 'Y', 'Z', 'id',
+             'Shape_Length', 'Shape_Area', 'OBJECTID_1', 'layer_name_principal', 'LAYER', 'fclass',
+             'الاسم', 'name', 'Nom', 'NAME', // تم تضمينها في العنوان
+             'النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'TYPE_VOIE', 'road_type', 'classification' // تم تضمينها في النوع الفرعي
+            ].includes(key) &&
             properties[key] !== null && String(properties[key]).trim() !== "" && String(properties[key]).trim() !== " ") {
             let displayKey = key.replace(/_/g, ' ');
             displayKey = displayKey.charAt(0).toUpperCase() + displayKey.slice(1);
@@ -193,11 +252,11 @@ fetch('Attaouia_GeoData.geojson')
         data.features.forEach(feature => {
             if (!feature.properties) feature.properties = {};
             const mainLayerName = getLayerNameFromProperties(feature.properties);
-            feature.properties.derived_main_layer = mainLayerName; // تخزين الاسم المشتق
+            feature.properties.derived_main_layer = mainLayerName;
 
             if (mainLayerName === "طبقة غير مصنفة") {
                 unclassifiedCount++;
-                console.log("خصائص معلم غير مصنف (بعد getLayerNameFromProperties):", feature.properties); // <<< هذا مهم للتشخيص
+                console.log("خصائص معلم غير مصنف (بعد getLayerNameFromProperties):", feature.properties);
             } else {
                 classifiedNamesFound.add(mainLayerName);
             }
@@ -217,80 +276,94 @@ fetch('Attaouia_GeoData.geojson')
 
                 const geoJsonLayerGroup = L.geoJSON(null, {
                     pointToLayer: (feature, latlng) => {
-                        const subCategoryNameProp = feature.properties.النوع || feature.properties.SubCategory || feature.properties.type;
-                        let subCategoryName = "_default"; // اسم النمط الافتراضي داخل الفئة الفرعية
+                        const subCategoryPropertyCandidates = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'classification']; // ** عدّل هذه لتناسب بياناتك **
+                        let subCategoryName = "_default_sub_style";
 
-                        if (mainLayerConfig.subcategories && subCategoryNameProp && mainLayerConfig.subcategories[subCategoryNameProp]) {
-                            subCategoryName = subCategoryNameProp;
-                        } else if (mainLayerConfig.subcategories && mainLayerConfig.subcategories["_default_sub_style"]){
-                            subCategoryName = "_default_sub_style";
+                        for (const propKey of subCategoryPropertyCandidates) {
+                            if (feature.properties[propKey]) {
+                                const propValue = String(feature.properties[propKey]).trim();
+                                if (mainLayerConfig.subcategories && mainLayerConfig.subcategories[propValue]?.style) {
+                                    subCategoryName = propValue;
+                                    break;
+                                }
+                            }
+                        }
+                        if (subCategoryName === "_default_sub_style" && !(mainLayerConfig.subcategories && mainLayerConfig.subcategories["_default_sub_style"]?.style)) {
+                             const foundPropValue = subCategoryPropertyCandidates.map(k => feature.properties[k]).find(v => v);
+                             if (foundPropValue) {
+                                console.warn(`Point feature in layer "${mainLayerName}" with sub-category value "${foundPropValue}" (from keys: ${subCategoryPropertyCandidates.join(', ')}) does not have a matching subcategory point style. Using default layer style. Feature properties:`, feature.properties);
+                             }
+                             // Fallback to layer's default if no _default_sub_style or match
+                             return L.marker(latlng, { icon: createFeatureIcon(mainLayerConfig.defaultPointStyle || detailedStyles["طبقة غير مصنفة"].defaultPointStyle) });
                         }
 
                         let styleInfo = (mainLayerConfig.subcategories && mainLayerConfig.subcategories[subCategoryName]?.style) ||
-                                        mainLayerConfig.defaultPointStyle ||
-                                        detailedStyles["طبقة غير مصنفة"].defaultPointStyle;
+                                        mainLayerConfig.defaultPointStyle || // Fallback to main layer default
+                                        detailedStyles["طبقة غير مصنفة"].defaultPointStyle; // Absolute fallback
                         return L.marker(latlng, { icon: createFeatureIcon(styleInfo) });
                     },
                     style: (feature) => {
-                        // --- تعديل هنا لتطبيق أنماط الطرق الفرعية ---
-                        if (mainLayerName === "شبكة الطرق") {
-                            // هذه هي أسماء الخصائص المحتملة التي تحتوي على نوع الطريق
-                            // ** عدّل هذا إذا كان اسم عمود نوع الطريق في بياناتك مختلفًا **
-                            const roadTypePropertyKeys = ['النوع', 'نوع_الطريق', 'road_type', 'fclass', 'TYPE_VOIE'];
-                            let subCategoryName = "_default_sub_style"; // نمط افتراضي فرعي داخل شبكة الطرق
+                        const currentMainLayerName = feature.properties.derived_main_layer; // Use derived name
+                        const currentMainLayerConfig = detailedStyles[currentMainLayerName] || detailedStyles["طبقة غير مصنفة"];
+
+                        if (currentMainLayerName === "شبكة الطرق") {
+                            const roadTypePropertyKeys = ['النوع', 'نوع_الطريق', 'road_type', 'fclass', 'TYPE_VOIE', 'classification']; // ** عدّل هذه **
+                            let subCategoryName = "_default_sub_style";
 
                             for (const key of roadTypePropertyKeys) {
                                 if (feature.properties[key]) {
                                     const typeValue = String(feature.properties[key]).trim();
-                                    if (mainLayerConfig.subcategories && mainLayerConfig.subcategories[typeValue]) {
+                                    if (currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories[typeValue]?.styleConfig) {
                                         subCategoryName = typeValue;
                                         break;
                                     }
                                 }
                             }
-
-                            // إذا كان subCategoryName لا يزال هو الافتراضي، ولكن تم العثور على قيمة لنوع الطريق
-                            // فهذا يعني أن القيمة غير معرفة في subcategories
-                            if (subCategoryName === "_default_sub_style") {
-                                for (const key of roadTypePropertyKeys) {
-                                    if (feature.properties[key]) {
-                                        const typeValue = String(feature.properties[key]).trim();
-                                        if (!(mainLayerConfig.subcategories && mainLayerConfig.subcategories[typeValue])) {
-                                            console.warn(`Road type value '${typeValue}' from property '${key}' (feature in "شبكة الطرق") does not have a matching subcategory style. Using default sub-style. Properties:`, feature.properties);
-                                        }
-                                        break; // يكفي التحقق من أول خاصية موجودة لنوع الطريق
-                                    }
+                            if (subCategoryName === "_default_sub_style" && !(currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories["_default_sub_style"]?.styleConfig)) {
+                                const foundPropValue = roadTypePropertyKeys.map(k => feature.properties[k]).find(v => v);
+                                if (foundPropValue) {
+                                   console.warn(`Road type value '${foundPropValue}' (from keys: ${roadTypePropertyKeys.join(', ')}) for feature in "شبكة الطرق" does not have a matching subcategory styleConfig. Using default layer style. Feature properties:`, feature.properties);
                                 }
+                                return currentMainLayerConfig.defaultLinePolyStyle || detailedStyles["طبقة غير مصنفة"].defaultLinePolyStyle;
                             }
-                            return (mainLayerConfig.subcategories && mainLayerConfig.subcategories[subCategoryName]?.styleConfig) ||
-                                   mainLayerConfig.defaultLinePolyStyle || // احتياطي إذا لم يكن هناك _default_sub_style
+                            return (currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories[subCategoryName]?.styleConfig) ||
+                                   currentMainLayerConfig.defaultLinePolyStyle ||
                                    detailedStyles["طبقة غير مصنفة"].defaultLinePolyStyle;
                         }
-                        // --- نهاية تعديل أنماط الطرق ---
 
-                        // الكود الأصلي للطبقات الأخرى
-                        let subCategoryName = "_default_style"; // اسم النمط الافتراضي العام للخطوط والمضلعات
-                        const subCategoryNameProp = feature.properties.النوع || feature.properties.SubCategory || feature.properties.type;
+                        // For other Line/Polygon layers
+                        const subCategoryPropertyCandidates = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'classification']; // ** عدّل هذه **
+                        let subCategoryName = "_default_sub_style";
 
-                        if (mainLayerConfig.subcategories && subCategoryNameProp && mainLayerConfig.subcategories[subCategoryNameProp]?.styleConfig) {
-                             subCategoryName = subCategoryNameProp;
-                        } else if (mainLayerConfig.subcategories && mainLayerConfig.subcategories["_default_sub_style"]?.styleConfig) { // استخدام _default_sub_style إذا كان موجودًا
-                             subCategoryName = "_default_sub_style";
-                        }
-
-
-                        if (mainLayerName === "أحياء" && mainLayerConfig.subcategories) {
-                            const densityRangeKey = feature.properties. نطاق_الكثافة || feature.properties.density_range;
-                            if (densityRangeKey && mainLayerConfig.subcategories[densityRangeKey]) {
-                                return mainLayerConfig.subcategories[densityRangeKey].styleConfig;
+                        for (const propKey of subCategoryPropertyCandidates) {
+                            if (feature.properties[propKey]) {
+                                const propValue = String(feature.properties[propKey]).trim();
+                                 if (currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories[propValue]?.styleConfig) {
+                                    subCategoryName = propValue;
+                                    break;
+                                }
                             }
                         }
-                        return (mainLayerConfig.subcategories && mainLayerConfig.subcategories[subCategoryName]?.styleConfig) ||
-                               mainLayerConfig.defaultLinePolyStyle ||
+                        if (subCategoryName === "_default_sub_style" && !(currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories["_default_sub_style"]?.styleConfig)) {
+                            const foundPropValue = subCategoryPropertyCandidates.map(k => feature.properties[k]).find(v => v);
+                             if (foundPropValue) {
+                                console.warn(`Line/Polygon feature in layer "${currentMainLayerName}" with sub-category value "${foundPropValue}" (from keys: ${subCategoryPropertyCandidates.join(', ')}) does not have a matching subcategory line/poly styleConfig. Using default layer style. Feature properties:`, feature.properties);
+                             }
+                            return currentMainLayerConfig.defaultLinePolyStyle || detailedStyles["طبقة غير مصنفة"].defaultLinePolyStyle;
+                        }
+
+                        if (currentMainLayerName === "أحياء" && currentMainLayerConfig.subcategories) {
+                            const densityRangeKey = feature.properties. نطاق_الكثافة || feature.properties.density_range;
+                            if (densityRangeKey && currentMainLayerConfig.subcategories[densityRangeKey]?.styleConfig) {
+                                return currentMainLayerConfig.subcategories[densityRangeKey].styleConfig;
+                            }
+                        }
+                        return (currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories[subCategoryName]?.styleConfig) ||
+                               currentMainLayerConfig.defaultLinePolyStyle ||
                                detailedStyles["طبقة غير مصنفة"].defaultLinePolyStyle;
                     },
                     onEachFeature: (feature, layer) => {
-                        layer.bindPopup(createPopupContent(feature.properties, mainLayerName));
+                        layer.bindPopup(createPopupContent(feature.properties, feature.properties.derived_main_layer));
                     }
                 });
 
@@ -299,9 +372,7 @@ fetch('Attaouia_GeoData.geojson')
                 const displayNameForControl = mainLayerConfig.displayName || mainLayerName;
                 layerControlEntries[displayNameForControl] = geoJsonLayerGroup;
 
-                // إضافة طبقات معينة افتراضيًا للخريطة
-                if (["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني"].includes(displayNameForControl) ||
-                    ["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني"].includes(mainLayerName)) {
+                if (["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني"].includes(displayNameForControl)) {
                     geoJsonLayerGroup.addTo(map);
                 }
             }
@@ -309,8 +380,6 @@ fetch('Attaouia_GeoData.geojson')
 
         if (Object.keys(layerControlEntries).length > 0) {
             L.control.layers(null, layerControlEntries, { collapsed: false, position: 'topright' }).addTo(map);
-        } else {
-            console.warn("No layers were added to the layer control. Check classification logic.");
         }
         updateCustomLegend();
         styleLayerControl();
@@ -324,7 +393,7 @@ fetch('Attaouia_GeoData.geojson')
     });
 
 // 5. وسيلة إيضاح مخصصة (Custom Legend)
-function updateCustomLegend() { /* ... (نفس دالة updateCustomLegend من الرد السابق، تأكد أنها موجودة) ... */
+function updateCustomLegend() {
     const legendContainerId = 'custom-legend';
     let legendDiv = document.getElementById(legendContainerId);
     if (!legendDiv) {
@@ -335,15 +404,14 @@ function updateCustomLegend() { /* ... (نفس دالة updateCustomLegend من 
         legendControl.addTo(map);
     }
     legendDiv.innerHTML = '<h4>وسيلة الإيضاح</h4>';
-    legendDiv.style.cssText = "background-color:white; padding:10px; border:1px solid #ccc; max-height:350px; overflow-y:auto; font-size:12px; width: 260px;";
+    legendDiv.style.cssText = "background-color:white; padding:10px; border:1px solid #ccc; max-height:calc(100vh - 120px); overflow-y:auto; font-size:12px; width: 260px;"; // زدت الارتفاع
     const orderedLayerNames = Object.keys(detailedStyles);
 
     orderedLayerNames.forEach(mainLayerName => {
         if (detailedStyles.hasOwnProperty(mainLayerName) && mainLayerName !== "طبقة غير مصنفة") {
             const layerConfig = detailedStyles[mainLayerName];
-            // تحقق مما إذا كانت الطبقة موجودة بالفعل على الخريطة ولها معالم
             if (!createdLayers[mainLayerName] || Object.keys(createdLayers[mainLayerName].getLayers()).length === 0) {
-                return; // تخطي إذا كانت الطبقة فارغة أو غير مضافة
+                return;
             }
 
             const mainLayerDiv = document.createElement('div');
@@ -351,60 +419,77 @@ function updateCustomLegend() { /* ... (نفس دالة updateCustomLegend من 
             mainLayerDiv.style.marginTop = '8px';
             legendDiv.appendChild(mainLayerDiv);
 
-            const hasSubcategories = layerConfig.subcategories && Object.keys(layerConfig.subcategories).length > 0;
-            const hasDefaultPoint = layerConfig.defaultPointStyle && !layerConfig.defaultPointStyle.symbol?.includes('pin'); // لتجنب عرض الدبوس الافتراضي جدًا
-            const hasDefaultLinePoly = layerConfig.defaultLinePolyStyle;
+            const subcategoriesToShow = [];
+            if (layerConfig.subcategories) {
+                 Object.keys(layerConfig.subcategories).forEach(subcatKey => {
+                    if (subcatKey.startsWith("_default")) return; // لا تعرض الأنماط الافتراضية الداخلية مباشرة
 
-            if (hasSubcategories) {
-                for (const subcatName in layerConfig.subcategories) {
-                    if (layerConfig.subcategories.hasOwnProperty(subcatName) && subcatName !== "_default_style" && subcatName !== "_default_sub_style") { // لا تعرض الأنماط الافتراضية الداخلية هنا
-                        // تحقق مما إذا كان هناك أي معالم تستخدم هذه الفئة الفرعية
-                        let subcategoryHasFeatures = false;
-                        if (createdLayers[mainLayerName]) {
-                            createdLayers[mainLayerName].eachLayer(layer => {
-                                const props = layer.feature.properties;
-                                const roadTypePropertyKeys = ['النوع', 'نوع_الطريق', 'road_type', 'fclass', 'TYPE_VOIE']; // نفس المفاتيح المستخدمة في style
-                                let currentSubcat = "";
-                                if (mainLayerName === "شبكة الطرق") {
-                                    for (const rKey of roadTypePropertyKeys) {
-                                        if (props[rKey] && String(props[rKey]).trim() === subcatName) {
-                                            currentSubcat = subcatName;
-                                            break;
-                                        }
-                                    }
-                                } else {
-                                     currentSubcat = props.النوع || props.SubCategory || props.type;
-                                }
-
-                                if (currentSubcat === subcatName) {
+                    let subcategoryHasFeatures = false;
+                    if(createdLayers[mainLayerName]) {
+                        createdLayers[mainLayerName].eachLayer(l => {
+                            const props = l.feature.properties;
+                            const subCatPropKeys = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'fclass', 'TYPE_VOIE', 'road_type', 'classification', 'nطاق_الكثافة', 'density_range'];
+                            for(const pKey of subCatPropKeys){
+                                if(props[pKey] && String(props[pKey]).trim() === subcatKey){
                                     subcategoryHasFeatures = true;
+                                    break;
                                 }
-                            });
-                        }
-                        if (!subcategoryHasFeatures && subcatName !== "_default_style" && subcatName !== "_default_sub_style") continue;
+                            }
+                            if(subcategoryHasFeatures) return; // للخروج من eachLayer مبكرا
+                        });
+                    }
+                    if(subcategoryHasFeatures) {
+                        subcategoriesToShow.push(subcatKey);
+                    }
+                });
+            }
 
 
-                        const subcatConfig = layerConfig.subcategories[subcatName];
-                        const itemDiv = document.createElement('div');
-                        itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
-                        let iconHtml = '';
-                        if (subcatConfig.style) iconHtml = createFeatureIcon(subcatConfig.style).options.html;
-                        else if (subcatConfig.styleConfig) {
-                            const sc = subcatConfig.styleConfig;
+            if (subcategoriesToShow.length > 0) {
+                subcategoriesToShow.forEach(subcatName => {
+                    const subcatConfig = layerConfig.subcategories[subcatName];
+                    if (!subcatConfig) return;
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
+                    let iconHtml = '';
+
+                    if (subcatConfig.style) { // للنقاط
+                        iconHtml = createFeatureIcon(subcatConfig.style).options.html;
+                    } else if (subcatConfig.styleConfig) { // للخطوط والمضلعات
+                        const sc = subcatConfig.styleConfig;
+                        const isLine = mainLayerName === "شبكة الطرق" || (sc.weight && !sc.fillColor && sc.fillOpacity !== 0); // اعتبرها خط إذا كانت شبكة طرق أو لها وزن وبدون لون تعبئة صريح
+                        if (isLine) {
+                            if (sc.dashArray) {
+                                iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${sc.weight || 2}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
+                            } else {
+                                iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
+                            }
+                        } else { // للمضلعات
                             iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle;"></span>`;
                         }
-                        itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span>${subcatConfig.displayName || subcatName}</span>`;
-                        legendDiv.appendChild(itemDiv);
                     }
-                }
-            } else if (hasDefaultPoint || hasDefaultLinePoly) { // إذا لم يكن هناك subcategories، اعرض النمط الافتراضي للطبقة
+                    itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span>${subcatConfig.displayName || subcatName}</span>`;
+                    legendDiv.appendChild(itemDiv);
+                });
+            } else if (layerConfig.defaultPointStyle || layerConfig.defaultLinePolyStyle) { // إذا لم تكن هناك فئات فرعية ذات معالم، اعرض النمط الافتراضي للطبقة
                 const itemDiv = document.createElement('div');
                 itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
                 let iconHtml = '';
-                if (hasDefaultPoint) iconHtml = createFeatureIcon(layerConfig.defaultPointStyle).options.html;
-                else if (hasDefaultLinePoly) {
+                if (layerConfig.defaultPointStyle) {
+                     iconHtml = createFeatureIcon(layerConfig.defaultPointStyle).options.html;
+                } else if (layerConfig.defaultLinePolyStyle) {
                     const sc = layerConfig.defaultLinePolyStyle;
-                    iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle;"></span>`;
+                    const isLine = mainLayerName === "شبكة الطرق" || (sc.weight && !sc.fillColor && sc.fillOpacity !== 0);
+                    if (isLine) {
+                         if (sc.dashArray) {
+                            iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${sc.weight || 2}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
+                        } else {
+                             iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
+                        }
+                    } else {
+                         iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle;"></span>`;
+                    }
                 }
                 itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span><small>(نمط افتراضي للطبقة)</small></span>`;
                 legendDiv.appendChild(itemDiv);
@@ -413,25 +498,33 @@ function updateCustomLegend() { /* ... (نفس دالة updateCustomLegend من 
     });
 }
 
+
 // 6. تعديل مظهر متحكم الطبقات Leaflet Control
-function styleLayerControl() { /* ... (نفس دالة styleLayerControl من الرد السابق، تأكد أنها موجودة) ... */
+function styleLayerControl() {
     const layerControlElement = document.querySelector('.leaflet-control-layers');
     if (layerControlElement) {
         layerControlElement.style.width = '280px';
-        layerControlElement.style.maxHeight = 'calc(100vh - 100px - 370px)'; // ضبط الارتفاع ليتناسب مع وسيلة الإيضاح
+        layerControlElement.style.maxHeight = 'calc(100vh - 40px - 370px)'; // مساحة أقل إذا كانت وسيلة الإيضاح كبيرة
+        if (document.getElementById('custom-legend')) { // إذا كانت وسيلة الإيضاح موجودة، قلل ارتفاع متحكم الطبقات
+             layerControlElement.style.maxHeight = 'calc(100vh - 40px - ' + (document.getElementById('custom-legend').offsetHeight + 20) + 'px)';
+        } else {
+            layerControlElement.style.maxHeight = 'calc(100vh - 60px)';
+        }
+
         layerControlElement.style.overflowY = 'auto';
-        layerControlElement.style.backgroundColor = 'white';
+        layerControlElement.style.backgroundColor = 'rgba(255,255,255,0.95)'; // خلفية شبه شفافة
         layerControlElement.style.padding = '10px';
         layerControlElement.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
         layerControlElement.style.fontSize = '13px';
+        layerControlElement.style.borderRadius = '5px'; // حواف دائرية
     }
     const layersControlContainer = document.querySelector('.leaflet-control-layers-list');
     if (layersControlContainer) {
-        if (!layersControlContainer.querySelector('.leaflet-control-layers-title')) { // إضافة العنوان مرة واحدة فقط
+        if (!layersControlContainer.querySelector('.leaflet-control-layers-title')) {
             const titleElement = document.createElement('div');
-            titleElement.className = 'leaflet-control-layers-title'; // لإمكانية التحقق
+            titleElement.className = 'leaflet-control-layers-title';
             titleElement.innerHTML = '<strong>الطبقات الرئيسية</strong>';
-            titleElement.style.cssText = "text-align:center; padding:5px 0 10px 0; border-bottom:1px solid #ccc; margin-bottom:5px;";
+            titleElement.style.cssText = "text-align:center; padding:5px 0 10px 0; border-bottom:1px solid #ccc; margin-bottom:5px; font-weight:bold;";
             layersControlContainer.insertBefore(titleElement, layersControlContainer.firstChild);
         }
     }
@@ -440,13 +533,67 @@ function styleLayerControl() { /* ... (نفس دالة styleLayerControl من ا
 // 7. CSS إضافي
 const styleSheet = document.createElement("style");
 styleSheet.type = "text/css";
-styleSheet.innerText = ` /* ... (نفس CSS من الرد السابق، تأكد أنه موجود) ... */
-    .custom-svg-div-icon, .custom-text-div-icon { background: transparent !important; border: none !important; display: flex; align-items: center; justify-content: center; line-height: 1; }
-    .leaflet-control-layers-list label { display: flex; align-items: center; margin-bottom: 4px; }
-    .leaflet-control-layers-list label input[type="checkbox"] { margin-right: 0; margin-left: 6px; } /* تم تعديل margin هنا ليتناسب مع RTL */
-    .leaflet-control-layers-list label span { vertical-align: middle; }
-    .leaflet-control-layers-expanded { padding: 6px 10px !important; }
-    #custom-legend h4 { margin-top:0; margin-bottom:10px; text-align:center; border-bottom: 1px solid #ddd; padding-bottom: 5px;}
-    #custom-legend strong { display: block; border-bottom: 1px solid #eee; margin-bottom: 5px; padding-bottom: 3px; }
+styleSheet.innerText = `
+    .custom-svg-div-icon, .custom-text-div-icon {
+        background: transparent !important;
+        border: none !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+    }
+    .leaflet-control-layers-list label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+        cursor: pointer;
+    }
+    .leaflet-control-layers-list label input[type="checkbox"] {
+        margin-right: 0;
+        margin-left: 8px; /* مسافة أكبر قليلاً */
+    }
+    .leaflet-control-layers-list label span {
+        vertical-align: middle;
+    }
+    .leaflet-control-layers-expanded {
+        padding: 8px 12px !important; /* زيادة padding */
+        border-radius: 5px;
+    }
+    #custom-legend {
+        border-radius: 5px;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        background-color: rgba(255,255,255,0.95) !important;
+    }
+    #custom-legend h4 {
+        margin-top:0;
+        margin-bottom:10px;
+        text-align:center;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 5px;
+        font-weight: bold;
+    }
+    #custom-legend strong { /* اسم الطبقة الرئيسية في وسيلة الإيضاح */
+        display: block;
+        /* border-bottom: 1px solid #eee; */ /* إزالة الخط السفلي من اسم الطبقة */
+        margin-bottom: 5px;
+        padding-bottom: 3px;
+        font-weight: bold; /* تمييز اسم الطبقة */
+        color: #333;
+    }
+    /* Styling scrollbars for webkit browsers */
+    .leaflet-control-layers-scrollbar::-webkit-scrollbar, #custom-legend::-webkit-scrollbar {
+      width: 8px;
+    }
+    .leaflet-control-layers-scrollbar::-webkit-scrollbar-track, #custom-legend::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    .leaflet-control-layers-scrollbar::-webkit-scrollbar-thumb, #custom-legend::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 10px;
+    }
+    .leaflet-control-layers-scrollbar::-webkit-scrollbar-thumb:hover, #custom-legend::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
 `;
 document.head.appendChild(styleSheet);
