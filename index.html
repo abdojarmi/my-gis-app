@@ -98,16 +98,24 @@
         #custom-legend::-webkit-scrollbar-thumb:hover { background: #555; }
 
 
-        #right-sidebar {
-            width: 300px;
-            min-width: 280px; /* حد أدنى للعرض */
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-left: 1px solid #dee2e6;
-            display: flex;
-            flex-direction: column;
-            overflow-y: hidden; /* يتم التحكم بالتمرير داخليا */
-        }
+       #right-sidebar {
+    width: 300px;
+    min-width: 280px;
+    padding: 15px; /* Si le défilement est interne, ce padding est pour le cadre du sidebar */
+    background-color: #f8f9fa;
+    border-left: 1px solid #dee2e6;
+    display: flex; /* Important pour que l'enfant scrollable puisse utiliser flex-grow */
+    flex-direction: column; /* Important pour que l'enfant scrollable puisse utiliser flex-grow */
+    /* overflow-y: hidden; -- Ok, car le défilement est géré par un enfant */
+
+    /* === AJOUT POUR DÉPLACER À DROITE ET FIXER === */
+    position: fixed;
+    top: 0; /* Ou la distance depuis le haut que vous souhaitez */
+    right: 0;
+    height: 100vh; /* Occupe toute la hauteur de la fenêtre visible */
+    z-index: 1000; /* Optionnel: pour s'assurer qu'il est au-dessus d'autres contenus */
+    /* ============================================= */
+}
         #layers-control-container {
             margin-bottom: 20px;
             border: 1px solid #ddd;
