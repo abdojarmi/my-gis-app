@@ -495,7 +495,7 @@ function updateCustomLegend() {
     if (!legendDiv) {
         legendDiv = document.createElement('div');
         legendDiv.id = legendContainerId;
-        const legendControl = L.control({ position: 'bottomright' });
+                const legendControl = L.control({ position: 'topright' });
         legendControl.onAdd = function () { L.DomEvent.disableClickPropagation(legendDiv); return legendDiv; };
         legendControl.addTo(map);
     }
