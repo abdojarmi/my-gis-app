@@ -69,17 +69,21 @@
 }
 
         /* وسيلة الإيضاح (سيتم تنسيقها في script.js أو هنا إذا تم إخراجها كـ HTML ثابت) */
-        #custom-legend {
-            background-color: rgba(255,255,255,0.95);
-            padding:10px;
-            border:1px solid #ccc;
-            max-height: calc(100vh - 150px); /* اضبط حسب الحاجة مع الأخذ في الاعتبار التكبير */
-            overflow-y:auto;
-            font-size:12px;
-            width: 260px;
-            border-radius: 5px;
-            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-        }
+       #custom-legend {
+    background-color: rgba(255,255,255,0.95);
+    padding: 10px;
+    border: 1px solid #ccc;
+    max-height: calc(100vh - 150px); /* اضبط حسب الحاجة مع الأخذ في الاعتبار التكبير */
+    overflow-y: auto;
+    font-size: 12px;
+    width: 260px;
+    border-radius: 5px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+
+    /* === AJOUT POUR MONTER L'ÉLÉMENT === */
+    margin-top: -20px; /* Ajustez la valeur (-20px) comme souhaité. Une valeur négative le fait monter. */
+    /* =================================== */
+}
         #custom-legend h4 {
             margin-top:0;
             margin-bottom:10px;
