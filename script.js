@@ -1,9 +1,11 @@
 // ====================================================================================
-// GIS SCRIPT FOR ATTAOUIA - V5.3 (Legend Subcategories Display Fix)
+// GIS SCRIPT FOR ATTAOUIA - V5.4 (Layout Reorganization)
 // ====================================================================================
 
 // 1. تهيئة الخريطة
-var map = L.map('map').setView([31.785, -7.285], 13);
+var map = L.map('map', {
+    zoomControl: false // تعطيل عنصر التحكم بالتكبير الافتراضي، سنضيفه يدويًا
+}).setView([31.785, -7.285], 13);
 
 // 2. إضافة طبقة أساس (TileLayer)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -59,8 +61,7 @@ function createFeatureIcon(styleSettings = {}) {
     });
 }
 
-// --- detailedStyles remains the same as in V5.2 ---
-// (محتوى detailedStyles كما هو في الرد السابق - V5.2)
+// --- detailedStyles remains the same as in V5.3 ---
 const detailedStyles = {
     "الصحة والمجال الاجتماعي": {
         displayName: "الصحة والمجال الاجتماعي",
@@ -126,7 +127,7 @@ const detailedStyles = {
         subcategories: {
             "مسجد": { displayName: "مسجد", style: {symbol: 'mosqueDome', color: '#B8860B', size: 28 } },
             "مصلى": { displayName: "مصلى", style: {symbol: 'square', color: '#F0E68C', size: 18 } },
-            "مقبرة": { displayName: "مقبرة", style: {symbol: 'square', color: '#708090', size: 18 } }, // Usually polygons, but can be a point
+            "مقبرة": { displayName: "مقبرة", style: {symbol: 'square', color: '#708090', size: 18 } },
             "زاوية": { displayName: "زاوية", style: {symbol: 'pin', color: '#FFD700', size: 22 } },
             "_default_sub_style": { displayName: "(غير محدد)", style: { symbol: 'pin', color: '#DAA520', size: 18 } }
         },
@@ -247,10 +248,7 @@ Object.keys(detailedStyles).forEach(mainLayerKey => {
     }
 });
 
-// --- getLayerNameFromProperties, createPopupContent, fetch, L.geoJSON pointToLayer/style, styleLayerControl, CSS ---
-// (جميع هذه الدوال والمقاطع تبقى كما هي في الرد السابق - V5.2)
-// ... (الكود من V5.2 لهذه الأجزاء) ...
-// 3. دوال مساعدة
+// --- getLayerNameFromProperties, createPopupContent ---
 function getLayerNameFromProperties(properties) {
     const knownMainLayers = Object.keys(detailedStyles).filter(k => k !== "طبقة غير مصنفة");
     const directPropsToCheck = ['MainCategory', 'LayerGroup', 'اسم_الطبقة_الرئيسي', 'layer_name_principal', 'layer', 'LAYER', 'nom_couche'];
@@ -353,7 +351,6 @@ fetch('Attaouia_GeoData.geojson')
 
             if (mainLayerName === "طبقة غير مصنفة") {
                 unclassifiedCount++;
-                console.log("خصائص معلم غير مصنف (بعد getLayerNameFromProperties):", feature.properties);
             } else {
                 classifiedNamesFound.add(mainLayerName);
             }
@@ -467,40 +464,87 @@ fetch('Attaouia_GeoData.geojson')
                 const displayNameForControl = mainLayerConfig.displayName || mainLayerName;
                 layerControlEntries[displayNameForControl] = geoJsonLayerGroup;
 
-                if (["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني"].includes(displayNameForControl)) {
+                if (["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني"].includes(mainLayerName) || // استخدم mainLayerName هنا
+                    ["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني"].includes(displayNameForControl) ) { // أبقِ على التحقق من displayNameForControl كاحتياط
                     geoJsonLayerGroup.addTo(map);
                 }
             }
         }
 
-        if (Object.keys(layerControlEntries).length > 0) {
-            L.control.layers(null, layerControlEntries, { collapsed: false, position: 'topright' }).addTo(map);
+        // --- نقل وترتيب عناصر التحكم ---
+        const layersControlContainer = document.getElementById('layers-control-container');
+        const leftControlsArea = document.getElementById('left-controls-area');
+
+        if (Object.keys(layerControlEntries).length > 0 && layersControlContainer) {
+            const layersControl = L.control.layers(null, layerControlEntries, {
+                collapsed: false, // لن يكون مطويًا
+            });
+            layersControl.addTo(map); // أضفه للخريطة ليتم إنشاء DOM الخاص به
+
+            const layersControlElement = layersControl.getContainer();
+            if (layersControlElement) {
+                layersControlContainer.appendChild(layersControlElement); // انقله إلى الحاوية المخصصة
+            }
+            styleLayerControl(); // طبق التنسيقات عليه بعد نقله
         }
-        updateCustomLegend(); // <<<<<<< استدعاء الدالة المعدلة
-        styleLayerControl();
+
+        if (leftControlsArea) {
+            // إضافة عنصر التحكم بالتكبير والتصغير
+            const zoomControl = L.control.zoom({ position: 'topleft' }); // Leaflet يضعه في top-left بشكل افتراضي
+            zoomControl.addTo(map);
+            const zoomElement = zoomControl.getContainer();
+            if (zoomElement) {
+                 // ضعه كأول عنصر في حاوية التحكم اليسرى
+                if (leftControlsArea.firstChild) {
+                    leftControlsArea.insertBefore(zoomElement, leftControlsArea.firstChild);
+                } else {
+                    leftControlsArea.appendChild(zoomElement);
+                }
+            }
+
+            // تحديث وسيلة الإيضاح وإضافتها إلى leftControlsArea
+            updateCustomLegend(leftControlsArea);
+        }
+
+        // وظيفة زر إخراج البيانات
+        const exportButton = document.getElementById('export-data-btn');
+        if (exportButton) {
+            exportButton.addEventListener('click', () => {
+                alert('سيتم تنفيذ وظيفة إخراج البيانات هنا!');
+                // يمكنك هنا إضافة الكود الخاص بتصدير البيانات
+                // مثال: console.log(JSON.stringify(data)); // data هي بيانات GeoJSON الأصلية
+            });
+        }
     })
     .catch(error => {
         console.error('Error loading/processing GeoJSON:', error);
         const mapDiv = document.getElementById('map');
         if (mapDiv) {
-            mapDiv.innerHTML = `<div style="padding:20px;color:red;text-align:center;"><h3>Error: ${error.message}</h3><p>Please check the console for details.</p></div>`;
+            mapDiv.innerHTML = `<div style="padding:20px;color:red;text-align:center;"><h3>خطأ في تحميل البيانات: ${error.message}</h3><p>يرجى التحقق من وحدة التحكم للمزيد من التفاصيل.</p></div>`;
         }
     });
 
 
 // 5. وسيلة إيضاح مخصصة (Custom Legend) - النسخة المعدلة
-function updateCustomLegend() {
+function updateCustomLegend(containerElement) {
     const legendContainerId = 'custom-legend';
     let legendDiv = document.getElementById(legendContainerId);
+
     if (!legendDiv) {
         legendDiv = document.createElement('div');
-        legendDiv.id = legendContainerId;
-                const legendControl = L.control({ position: 'topright' });
-        legendControl.onAdd = function () { L.DomEvent.disableClickPropagation(legendDiv); return legendDiv; };
-        legendControl.addTo(map);
+        legendDiv.id = legendContainerId; // الـ CSS في index.html سيتولى تنسيقه
+        if (containerElement) {
+            containerElement.appendChild(legendDiv); // أضفها إلى الحاوية الممررة
+        } else {
+            // كحل احتياطي (غير مثالي)
+            console.warn("Legend container not provided, legend may not be displayed correctly.");
+            document.body.appendChild(legendDiv); // fallback, not ideal
+        }
     }
-    legendDiv.innerHTML = '<h4>وسيلة الإيضاح</h4>';
-    legendDiv.style.cssText = "background-color:white; padding:10px; border:1px solid #ccc; max-height:calc(100vh - 120px); overflow-y:auto; font-size:12px; width: 260px; border-radius: 5px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); background-color: rgba(255,255,255,0.95) !important;";
+    // تم نقل التنسيق الأساسي إلى CSS في index.html
+    // legendDiv.style.cssText = "..."; // يمكن إزالة هذا السطر إذا كان CSS كافياً
+
+    legendDiv.innerHTML = '<h4>وسيلة الإيضاح</h4>'; // عنوان وسيلة الإيضاح
 
     const orderedLayerNames = Object.keys(detailedStyles);
 
@@ -508,14 +552,9 @@ function updateCustomLegend() {
         if (detailedStyles.hasOwnProperty(mainLayerName) && mainLayerName !== "طبقة غير مصنفة") {
             const layerConfig = detailedStyles[mainLayerName];
 
-            // اختياري: إذا كنت تريد عرض كل شيء دائمًا، قم بإزالة هذا الشرط
-            // if (!createdLayers[mainLayerName] || Object.keys(createdLayers[mainLayerName].getLayers()).length === 0) {
-            //     return;
-            // }
-
             const mainLayerDiv = document.createElement('div');
             mainLayerDiv.innerHTML = `<strong>${layerConfig.displayName || mainLayerName}</strong>`;
-            mainLayerDiv.style.marginTop = '8px';
+            // mainLayerDiv.style.marginTop = '8px'; // يمكن التحكم به عبر CSS عام إذا لزم الأمر
             legendDiv.appendChild(mainLayerDiv);
 
             if (layerConfig.subcategories && Object.keys(layerConfig.subcategories).length > 0) {
@@ -538,18 +577,18 @@ function updateCustomLegend() {
 
                         if (isLine) {
                             if (sc.dashArray) {
-                                iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${sc.weight || 2}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
+                                iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, sc.weight || 2)}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
                             } else {
                                 iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
                             }
-                        } else {
-                            iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle;"></span>`;
+                        } else { // Polygon
+                            iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${sc.fillOpacity || 1};"></span>`;
                         }
                     }
                     itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span>${subcatConfig.displayName || subcatName}</span>`;
                     legendDiv.appendChild(itemDiv);
                 });
-            } else if (layerConfig.defaultPointStyle || layerConfig.defaultLinePolyStyle) {
+            } else if (layerConfig.defaultPointStyle || layerConfig.defaultLinePolyStyle) { // طبقة رئيسية بدون فئات فرعية معرفة
                 const itemDiv = document.createElement('div');
                 itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
                 let iconHtml = '';
@@ -557,16 +596,16 @@ function updateCustomLegend() {
                      iconHtml = createFeatureIcon(layerConfig.defaultPointStyle).options.html;
                 } else if (layerConfig.defaultLinePolyStyle) {
                     const sc = layerConfig.defaultLinePolyStyle;
-                    const isLine = mainLayerName === "شبكة الطرق" ||
+                     const isLine = mainLayerName === "شبكة الطرق" || // أو أي معيار آخر لتحديد الخط
                                    (sc.hasOwnProperty('weight') && (!sc.hasOwnProperty('fillColor') || sc.fillColor === 'transparent' || sc.fillOpacity === 0));
                     if (isLine) {
                          if (sc.dashArray) {
-                            iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${sc.weight || 2}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
+                            iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, sc.weight || 2)}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
                         } else {
                              iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
                         }
-                    } else {
-                         iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle;"></span>`;
+                    } else { // Polygon
+                         iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${sc.fillOpacity || 1};"></span>`;
                     }
                 }
                 itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span><small>(نمط افتراضي للطبقة)</small></span>`;
@@ -579,49 +618,26 @@ function updateCustomLegend() {
 
 // 6. تعديل مظهر متحكم الطبقات Leaflet Control
 function styleLayerControl() {
-    const layerControlElement = document.querySelector('.leaflet-control-layers');
+    const layerControlElement = document.querySelector('#layers-control-container .leaflet-control-layers');
     if (layerControlElement) {
-        layerControlElement.style.width = '280px';
-        if (document.getElementById('custom-legend')) {
-             layerControlElement.style.maxHeight = 'calc(100vh - 40px - ' + (document.getElementById('custom-legend').offsetHeight + 20) + 'px)';
-        } else {
-            layerControlElement.style.maxHeight = 'calc(100vh - 60px)';
-        }
-
-        layerControlElement.style.overflowY = 'auto';
-        layerControlElement.style.backgroundColor = 'rgba(255,255,255,0.95)';
-        layerControlElement.style.padding = '10px';
-        layerControlElement.style.boxShadow = '0 1px 5px rgba(0,0,0,0.4)';
-        layerControlElement.style.fontSize = '13px';
-        layerControlElement.style.borderRadius = '5px';
-    }
-    const layersControlContainer = document.querySelector('.leaflet-control-layers-list');
-    if (layersControlContainer) {
-        if (!layersControlContainer.querySelector('.leaflet-control-layers-title')) {
+        // معظم التنسيقات الآن تُطبق عبر CSS العام للحاوية الجديدة
+        // هذا الجزء الخاص بإضافة العنوان لا يزال مفيدًا
+        const layersListContainer = layerControlElement.querySelector('.leaflet-control-layers-list');
+        if (layersListContainer && !layerControlElement.querySelector('.leaflet-control-layers-title')) {
             const titleElement = document.createElement('div');
-            titleElement.className = 'leaflet-control-layers-title';
+            titleElement.className = 'leaflet-control-layers-title'; // Class معرف في CSS
             titleElement.innerHTML = '<strong>الطبقات الرئيسية</strong>';
-            titleElement.style.cssText = "text-align:center; padding:5px 0 10px 0; border-bottom:1px solid #ccc; margin-bottom:5px; font-weight:bold;";
-            layersControlContainer.insertBefore(titleElement, layersControlContainer.firstChild);
+            // تم نقل التنسيق إلى CSS
+            // titleElement.style.cssText = "text-align:center; padding:10px 0 10px 0; border-bottom:1px solid #ccc; margin-bottom:5px; font-weight:bold; background-color: white;";
+            layerControlElement.insertBefore(titleElement, layersListContainer); // يضيف العنوان قبل قائمة الطبقات
         }
     }
 }
 
-// 7. CSS إضافي
+// 7. CSS إضافي (تم نقله إلى ملف index.html)
+// لم يعد هذا الجزء ضروريًا هنا
+/*
 const styleSheet = document.createElement("style");
-styleSheet.type = "text/css";
-styleSheet.innerText = `
-    .custom-svg-div-icon, .custom-text-div-icon { background: transparent !important; border: none !important; display: flex; align-items: center; justify-content: center; line-height: 1; }
-    .leaflet-control-layers-list label { display: flex; align-items: center; margin-bottom: 4px; cursor: pointer; }
-    .leaflet-control-layers-list label input[type="checkbox"] { margin-right: 0; margin-left: 8px; }
-    .leaflet-control-layers-list label span { vertical-align: middle; }
-    .leaflet-control-layers-expanded { padding: 8px 12px !important; border-radius: 5px; }
-    #custom-legend { border-radius: 5px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); background-color: rgba(255,255,255,0.95) !important; }
-    #custom-legend h4 { margin-top:0; margin-bottom:10px; text-align:center; border-bottom: 1px solid #ddd; padding-bottom: 5px; font-weight: bold; }
-    #custom-legend strong { display: block; margin-bottom: 5px; padding-bottom: 3px; font-weight: bold; color: #333; }
-    .leaflet-control-layers-scrollbar::-webkit-scrollbar, #custom-legend::-webkit-scrollbar { width: 8px; }
-    .leaflet-control-layers-scrollbar::-webkit-scrollbar-track, #custom-legend::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-    .leaflet-control-layers-scrollbar::-webkit-scrollbar-thumb, #custom-legend::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
-    .leaflet-control-layers-scrollbar::-webkit-scrollbar-thumb:hover, #custom-legend::-webkit-scrollbar-thumb:hover { background: #555; }
-`;
+// ...
 document.head.appendChild(styleSheet);
+*/
