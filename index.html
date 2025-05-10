@@ -66,11 +66,12 @@
             min-height: 500px; /*  ارتفاع أدنى لمنطقة الخريطة لضمان ظهورها */
             overflow: hidden; /* لمنع ظهور أشرطة تمرير داخل هذا الجزء */
         }
-        #map-container {
-            flex-grow: 1; /* الخريطة تأخذ المساحة المتبقية أفقيًا */
-            position: relative; /* لموضع #left-controls-area */
-            height: 100%; /* تملأ ارتفاع .app-body */
-        }
+#map-container {
+    flex-grow: 1;
+    position: relative; /* << مهم جدًا لـ #left-controls-area */
+    height: 100%;
+    display: flex; /* إذا كانت الخريطة نفسها تحتاج إلى flex، وإلا فلا حاجة له هنا */
+}
         #map {
             width: 100%;
             height: 100%;
