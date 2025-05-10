@@ -5,6 +5,20 @@
 // انتظر حتى يتم تحميل DOM بالكامل
 document.addEventListener('DOMContentLoaded', function() {
 
+        // --- الحصول على عناصر DOM الرئيسية ---
+    var mapElement = document.getElementById('map'); // مثال إذا كنت تستخدمه لاحقًا
+    var contactModal = document.getElementById("contactModal");
+    var btnContact = document.getElementById("contactBtnHeader");
+    var spanClose = document.getElementsByClassName("close-button")[0]; // يفترض أنه الأول، وقد يكون هذا غير دقيق إذا كان لديك عدة أزرار إغلاق بنفس الكلاس
+
+    // --- الحصول على عناصر DOM الخاصة بالتعليقات ---
+    var showCommentsBtn = document.getElementById('showCommentsBtn');
+    var commentsModal = document.getElementById('commentsModal');
+    // انتبه: زر الإغلاق الخاص بنافذة التعليقات لديه ID فريد أعطيناه إياه
+    var closeCommentsModalBtn = document.getElementById('closeCommentsModalBtn'); // وليس getElementsByClassName
+    var commentForm = document.getElementById('commentForm');
+    var commentsListDiv = document.getElementById('comments-list');
+
     // 1. تهيئة الخريطة
     var map = L.map('map', {
         zoomControl: false // تعطيل عنصر التحكم بالتكبير الافتراضي، سنضيفه يدويًا
@@ -635,13 +649,76 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.style.display = "none";
         }
     }
-
     // عندما يضغط المستخدم في أي مكان خارج محتوى النافذة، أغلقها
     window.onclick = function(event) {
         if (modal && event.target == modal) { // إذا كان الهدف هو الخلفية الرمادية للنافذة
             modal.style.display = "none";
         }
     }
+    // --- وظيفة النافذة المنبثقة للتعليقات ---
+if (showCommentsBtn && commentsModal && closeCommentsModalBtn) {
+    showCommentsBtn.onclick = function() {
+        commentsModal.style.display = 'block';
+    }
+    closeCommentsModalBtn.onclick = function() {
+        commentsModal.style.display = 'none';
+    }
+    // إغلاق نافذة التعليقات عند النقر خارج محتواها
+    window.addEventListener('click', function(event) { // استخدم addEventListener لتجنب الكتابة فوق window.onclick السابق
+        if (event.target == commentsModal) {
+            commentsModal.style.display = 'none';
+        }
+    });
+} else {
+    if (!showCommentsBtn) console.error("Button 'showCommentsBtn' not found.");
+    if (!commentsModal) console.error("Modal 'commentsModal' not found.");
+    if (!closeCommentsModalBtn) console.error("Button 'closeCommentsModalBtn' not found.");
+}
+
+// (اختياري) التعامل مع إرسال نموذج التعليق
+if (commentForm && commentsListDiv) {
+    commentForm.onsubmit = function(event) {
+        event.preventDefault(); // منع الإرسال التقليدي للنموذج
+
+        var commenterName = document.getElementById('commenterName').value.trim();
+        var commentText = document.getElementById('commentText').value.trim();
+
+        if (commentText === "") {
+            alert("الرجاء كتابة تعليق.");
+            return;
+        }
+
+        // إنشاء عنصر التعليق الجديد
+        var newComment = document.createElement('div');
+        newComment.style.borderBottom = "1px solid #eee";
+        newComment.style.paddingBottom = "10px";
+        newComment.style.marginBottom = "10px";
+
+        var nameStrong = document.createElement('strong');
+        nameStrong.textContent = commenterName ? commenterName : "مجهول";
+        newComment.appendChild(nameStrong);
+
+        var textP = document.createElement('p');
+        textP.textContent = commentText;
+        textP.style.margin = "5px 0 0 0";
+        newComment.appendChild(textP);
+
+        // إزالة رسالة "لا توجد تعليقات" إذا كانت موجودة
+        var noCommentsMsg = commentsListDiv.querySelector('em');
+        if (noCommentsMsg) {
+            commentsListDiv.removeChild(noCommentsMsg);
+        }
+
+        commentsListDiv.appendChild(newComment);
+
+        // مسح النموذج
+        document.getElementById('commenterName').value = "";
+        document.getElementById('commentText').value = "";
+
+        alert("شكراً على تعليقك!");
+        // يمكنك هنا إضافة كود لإرسال التعليق إلى خادم إذا أردت حفظه بشكل دائم
+    };
+}
     // =============================================================
     // == نهاية كود النافذة المنبثقة ==
     // =============================================================
