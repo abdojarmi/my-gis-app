@@ -8,13 +8,16 @@
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin=""/>
     <style>
+        html {
+            height: 100%; /* مهم لـ body min-height: 100% */
+        }
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            /* overflow: hidden; -- سنقوم بإزالته للسماح بتمرير الصفحة إذا لزم الأمر */
+            min-height: 100%; /* يسمح للجسم بالتمدد إذا كان المحتوى أطول */
+            /* overflow-y: auto; -- التمرير سيكون طبيعيًا إذا تجاوز المحتوى الارتفاع */
         }
         .main-header {
             background-color: #f8f9fa;
@@ -25,7 +28,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-shrink: 0; /* مهم: الهيدر لا يتقلص */
+            flex-shrink: 0; /* الهيدر لا يتقلص */
+            /* position: sticky; top: 0; z-index: 1002; -- يمكن تفعيله لاحقًا إذا أردت تثبيت الهيدر */
         }
         .header-title-group {
             text-align: center;
@@ -56,15 +60,16 @@
         }
 
         .app-body {
-            display: flex;
-            flex-grow: 1; /* يأخذ المساحة المتبقية بعد الهيدر */
-            overflow: hidden; /* لمنع تمرير الخريطة نفسها بشكل غير مرغوب */
+            display: flex; /* لتخطيط الخريطة والشريط الجانبي أفقيًا */
+            flex-grow: 1; /* يأخذ المساحة المتبقية عموديًا */
+            /* height: 70vh; */ /* يمكنك تحديد ارتفاع ثابت مثل هذا إذا كنت تفضل */
+            min-height: 500px; /*  ارتفاع أدنى لمنطقة الخريطة لضمان ظهورها */
+            overflow: hidden; /* لمنع ظهور أشرطة تمرير داخل هذا الجزء */
         }
         #map-container {
-            flex-grow: 1;
-            position: relative;
-            height: 100%;
-            display: flex;
+            flex-grow: 1; /* الخريطة تأخذ المساحة المتبقية أفقيًا */
+            position: relative; /* لموضع #left-controls-area */
+            height: 100%; /* تملأ ارتفاع .app-body */
         }
         #map {
             width: 100%;
@@ -75,7 +80,7 @@
             position: absolute;
             top: 10px;
             left: 10px;
-            z-index: 1000;
+            z-index: 1000; /* فوق الخريطة */
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -91,7 +96,7 @@
             background-color: rgba(255,255,255,0.95);
             padding: 10px;
             border: 1px solid #ccc;
-            max-height: calc(100vh - 150px); /* يعتمد على ارتفاع الهيدر والعناصر الأخرى */
+            max-height: calc(100% - 80px); /* نسبة لارتفاع #map-container ناقص مساحة التكبير */
             overflow-y: auto;
             font-size: 12px;
             width: 260px;
@@ -99,40 +104,25 @@
             box-shadow: 0 1px 5px rgba(0,0,0,0.4);
             margin-top: -80px;
         }
-        #custom-legend h4 {
-            margin-top:0;
-            margin-bottom:10px;
-            text-align:center;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-            font-weight: bold;
-        }
-        #custom-legend strong {
-            display: block;
-            margin-bottom: 5px;
-            padding-bottom: 3px;
-            font-weight: bold;
-            color: #333;
-        }
-        #custom-legend::-webkit-scrollbar { width: 8px; }
-        #custom-legend::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        #custom-legend::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
-        #custom-legend::-webkit-scrollbar-thumb:hover { background: #555; }
+        #custom-legend h4 { /* ... كما هي ... */ }
+        #custom-legend strong { /* ... كما هي ... */ }
+        #custom-legend::-webkit-scrollbar { /* ... كما هي ... */ }
+
 
        #right-sidebar {
             width: 300px;
-            min-width: 280px;
-            padding: 15px;
+            min-width: 280px; /* عرض أدنى */
+            flex-shrink: 0; /* الشريط الجانبي لا يتقلص */
             background-color: #f8f9fa;
             border-left: 1px solid #dee2e6;
+            padding: 15px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            position: fixed;
-            top: 0; /* سيبقى الشريط الجانبي ثابتًا بالنسبة للشاشة */
-            right: 0;
-            height: 100vh; /* سيمتد على كامل ارتفاع الشاشة */
-            z-index: 1000; /* ليبقى فوق الخريطة */
-            box-sizing: border-box;
+            height: 100%; /* ليمتد على ارتفاع .app-body */
+            overflow-y: auto; /* إذا كان محتوى الشريط أطول */
+            /* position: fixed; -- تمت إزالته ليكون جزءًا من تدفق .app-body */
+            /* z-index: 1000; -- قد لا يكون ضروريًا الآن */
         }
         #layers-control-container {
             margin-bottom: 20px;
@@ -145,7 +135,7 @@
             overflow: hidden;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        /* ... (باقي تنسيقات layers-control-container) ... */
+         /* ... (باقي تنسيقات layers-control-container و leaflet-control-layers) ... */
         .leaflet-control-layers-title {
             text-align:center;
             padding:10px 0 10px 0;
@@ -155,88 +145,23 @@
             background-color: white;
             flex-shrink: 0;
         }
-        /* ... (باقي تنسيقات leaflet-control-layers) ... */
-        #export-button-container {
-            margin-top: auto;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-        }
-        #export-button-container button {
-            width: 100%;
-            padding: 12px 15px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.05em;
-            font-weight: bold;
-            transition: background-color 0.2s ease-in-out;
-        }
-        #export-button-container button:hover {
-            background-color: #218838;
-        }
-        .custom-svg-div-icon, .custom-text-div-icon {
-            background: transparent !important;
-            border: none !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
-        }
+        #export-button-container { /* ... كما هي ... */ }
+        .custom-svg-div-icon, .custom-text-div-icon { /* ... كما هي ... */ }
 
         /* --- CSS للنافذة المنبثقة (Modal) --- */
-        .modal {
-          display: none;
-          position: fixed;
-          z-index: 1001;
-          left: 0;
-          top: 0;
-          width: 100%;
-          height: 100%;
-          overflow: auto;
-          background-color: rgba(0,0,0,0.5);
-          direction: rtl;
-        }
-        .modal-content {
-          background-color: #fefefe;
-          margin: 15% auto;
-          padding: 20px;
-          border: 1px solid #888;
-          width: 80%;
-          max-width: 400px;
-          border-radius: 8px;
-          position: relative;
-          box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-        }
-        /* ... (باقي تنسيقات النافذة المنبثقة) ... */
-        .close-button {
-          color: #aaa;
-          position: absolute;
-          left: 15px;
-          top: 10px;
-          font-size: 28px;
-          font-weight: bold;
-        }
-        .close-button:hover,
-        .close-button:focus {
-          color: black;
-          text-decoration: none;
-          cursor: pointer;
-        }
+        .modal { /* ... كما هي ... */ }
+        .modal-content { /* ... كما هي ... */ }
+        .close-button { /* ... كما هي ... */ }
 
-        /* --- CSS جديد لقسم التعليقات --- */
-        #comments-wrapper { /* حاوية خارجية للتحكم في التمرير إذا لزم الأمر */
+        /* --- CSS لقسم التعليقات --- */
+        #comments-wrapper {
             flex-shrink: 0; /* يمنع هذه الحاوية من التقلص */
-            /* يمكن تحديد max-height هنا إذا أردنا تمرير هذا الجزء فقط */
-            /* max-height: 40vh; */
-            /* overflow-y: auto; */
-            width: 100%; /* يأخذ العرض الكامل */
+            width: 100%;
+            background-color: #e9ecef; /* نقل الخلفية هنا */
+            border-top: 1px solid #ced4da; /* نقل الحد العلوي هنا */
         }
         #comments-section-container {
-            padding: 20px;
-            background-color: #e9ecef;
-            border-top: 1px solid #ced4da;
+            padding: 20px; /* فقط padding داخلي */
             direction: rtl;
             box-sizing: border-box;
         }
@@ -248,81 +173,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .comments-section h2,
-        .comments-section h3 {
-            text-align: center;
-            color: #343a40;
-            margin-bottom: 20px;
-        }
-        #comment-form div {
-            margin-bottom: 15px;
-        }
-        #comment-form label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #495057;
-        }
-        #comment-form input[type="text"],
-        #comment-form textarea {
-            width: calc(100% - 22px);
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 1em;
-        }
-        #comment-form textarea {
-            resize: vertical;
-        }
-        #comment-form button[type="submit"] {
-            background-color: #28a745;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        #comment-form button[type="submit"]:hover {
-            background-color: #218838;
-        }
-        .existing-comments {
-            margin-top: 30px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-        }
-        #comments-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        #comments-list li {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            border: 1px solid #e9ecef;
-        }
-        #comments-list .comment-author {
-            font-size: 0.9em;
-            color: #6c757d;
-            margin-bottom: 5px;
-        }
-        #comments-list .comment-author strong {
-            color: #343a40;
-        }
-        #comments-list .comment-date {
-            font-style: italic;
-            font-size: 0.8em;
-        }
-        #comments-list .comment-body {
-            font-size: 1em;
-            line-height: 1.5;
-            color: #212529;
-            margin:0;
-        }
-        /* --- نهاية CSS لقسم التعليقات --- */
+        /* ... (باقي تنسيقات قسم التعليقات كما هي) ... */
 
     </style>
 </head>
@@ -335,14 +186,14 @@
         <button id="contactBtnHeader">اتصل بنا</button>
     </header>
 
-    <div class="app-body">
+    <div class="app-body"> <!-- هذا يحتوي على الخريطة والشريط الجانبي -->
         <div id="map-container">
             <div id="map"></div>
             <div id="left-controls-area">
                 <!-- عناصر التحكم بالخريطة ستضاف هنا -->
             </div>
         </div>
-        <div id="right-sidebar">
+        <div id="right-sidebar"> <!-- أصبح الآن جزءًا من تدفق .app-body -->
             <div id="layers-control-container">
                 <!-- عنصر التحكم بالطبقات -->
             </div>
@@ -352,9 +203,7 @@
         </div>
     </div>
 
-    <!-- حاوية خارجية للتحكم في قسم التعليقات -->
-    <div id="comments-wrapper">
-        <!-- قسم الملاحظات والتعليقات -->
+    <div id="comments-wrapper"> <!-- حاوية التعليقات أسفل .app-body -->
         <div id="comments-section-container">
             <div class="comments-section">
                 <h2>أضف ملاحظتك أو تعليقك</h2>
@@ -387,14 +236,13 @@
         </div>
     </div>
 
-
     <!-- النافذة المنبثقة (Modal) لـ "اتصل بنا" -->
     <div id="contactModal" class="modal">
       <div class="modal-content">
         <span class="close-button">×</span>
         <h2>تواصل معنا:</h2>
-        <p>📧 البريد: <a href="mailto:your.email@example.com">your.email@example.com</a></p>
-        <p>👔 الملف الشخصي على LinkedIn: <a href="https://www.linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer">ملفنا على LinkedIn</a></p>
+        <p>📧 البريد: <a href="mailto:a.jarmi0772@uca.ac.ma">a.jarmi0772@uca.ac.ma</a></p>
+        <p>👔 الملف الشخصي على LinkedIn: <a href="https://www.linkedin.com/in/abdelouahed-jarmi-2466b7248/" target="_blank" rel="noopener noreferrer">ملفنا على LinkedIn</a></p>
       </div>
     </div>
 
