@@ -704,11 +704,16 @@ if (commentForm && commentsListDiv) {
         newComment.appendChild(textP);
 
         // إزالة رسالة "لا توجد تعليقات" إذا كانت موجودة
-        var noCommentsMsg = commentsListDiv.querySelector('em');
-        if (noCommentsMsg) {
-            commentsListDiv.removeChild(noCommentsMsg);
+        var noCommentsEmElement = commentsListDiv.querySelector('p > em'); // نبحث عن em داخل p
+        if (noCommentsEmElement) {
+            var parentParagraph = noCommentsEmElement.parentElement; // نحصل على العنصر <p> الأب
+            if (parentParagraph && parentParagraph.parentNode === commentsListDiv) { // نتأكد أن <p> هو ابن مباشر لـ commentsListDiv
+                commentsListDiv.removeChild(parentParagraph);
+                console.log("'No comments' paragraph removed.");
+            } else {
+                console.warn("Could not find the 'no comments' paragraph correctly to remove it, or it's not a direct child.");
+            }
         }
-
         commentsListDiv.appendChild(newComment);
 
         // مسح النموذج
