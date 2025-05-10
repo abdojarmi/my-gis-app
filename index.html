@@ -182,26 +182,32 @@
              margin-left: 8px;
         }
 
-        #export-button-container {
-            margin-top: auto;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
+                /* --- تم تحديث هذا القسم ليتناسب مع زر التعليقات --- */
+        #comments-button-container { /* << الاسم الجديد للحاوية */
+            margin-top: auto;       /* يبقيه في الأسفل قدر الإمكان */
+            padding-top: 15px;      /* مسافة علوية قبل الزر */
+            border-top: 1px solid #eee; /* خط فاصل علوي */
+            position: relative;     /* لتفعيل خاصية bottom */
+            bottom: 5px;            /* << جرب قيمة هنا لإزاحة الزر للأعلى (مثلاً 5px, 10px) */
+                                    /* يمكنك زيادة هذه القيمة إذا احتجت إزاحة أكبر */
         }
-        #export-button-container button {
+        #comments-button-container button { /* << استهداف الزر داخل الحاوية الجديدة */
+                                           /* أو يمكنك استخدام #showCommentsBtn إذا أردت استهداف الزر بالـ ID مباشرة */
             width: 100%;
-            padding: 12px 15px;
-            background-color: #28a745;
+            padding: 10px 15px; /* قللت الحشو العمودي قليلاً لتقليل ارتفاع الزر إذا لزم الأمر */
+            background-color: #5a6268; /* لون رمادي داكن لتمييزه */
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 1.05em;
+            font-size: 1.0em;  /* حجم خط مناسب */
             font-weight: bold;
             transition: background-color 0.2s ease-in-out;
         }
-        #export-button-container button:hover {
-            background-color: #218838;
+        #comments-button-container button:hover { /* << استهداف الزر عند التحويم */
+            background-color: #474c51; /* لون أغمق قليلاً عند التحويم */
         }
+        /* --- نهاية القسم المحدث --- */
 
         .custom-svg-div-icon, .custom-text-div-icon {
             background: transparent !important;
