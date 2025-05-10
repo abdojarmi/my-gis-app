@@ -11,14 +11,15 @@
         html {
             height: 100%; /* مهم لـ body min-height: 100% */
         }
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100%; /* يسمح للجسم بالتمدد إذا كان المحتوى أطول */
-            /* overflow-y: auto; -- التمرير سيكون طبيعيًا إذا تجاوز المحتوى الارتفاع */
-        }
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    /* min-height: 100%; -- استبدله بـ height: 100vh; لملء الشاشة */
+    height: 100vh; /* << مهم لملء كامل ارتفاع الشاشة */
+    overflow: hidden; /* << مهم لمنع تمرير الصفحة الرئيسية إذا كان المحتوى أكبر */
+}
         .main-header {
             background-color: #f8f9fa;
             padding: 15px 20px;
@@ -59,13 +60,13 @@
             background-color: #0056b3;
         }
 
-        .app-body {
-            display: flex; /* لتخطيط الخريطة والشريط الجانبي أفقيًا */
-            flex-grow: 1; /* يأخذ المساحة المتبقية عموديًا */
-            /* height: 70vh; */ /* يمكنك تحديد ارتفاع ثابت مثل هذا إذا كنت تفضل */
-            min-height: 500px; /*  ارتفاع أدنى لمنطقة الخريطة لضمان ظهورها */
-            overflow: hidden; /* لمنع ظهور أشرطة تمرير داخل هذا الجزء */
-        }
+.app-body {
+    display: flex; /* لتخطيط الخريطة والشريط الجانبي أفقيًا */
+    flex-grow: 1;  /* يأخذ المساحة المتبقية عموديًا بعد الهيدر */
+    /* height: 70vh; -- لا حاجة له إذا كان flex-grow يعمل */
+    /* min-height: 500px; -- لا حاجة له إذا كان flex-grow يعمل */
+    overflow: hidden; /* لمنع ظهور أشرطة تمرير داخل هذا الجزء */
+}
 #map-container {
     flex-grow: 1;
     position: relative; /* << مهم جدًا لـ #left-controls-area */
@@ -110,26 +111,26 @@
         #custom-legend::-webkit-scrollbar { /* ... كما هي ... */ }
 
 
-       #right-sidebar {
-    width: 300px;
+#right-sidebar {
+    width: 300px; /* أو العرض الذي تفضله */
     min-width: 280px;
-    padding: 15px;
     background-color: #f8f9fa;
     border-left: 1px solid #dee2e6;
+    padding: 15px;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    box-sizing: border-box; /* جيد إضافته */
+    overflow-y: auto; /* للتمرير داخل الشريط الجانبي إذا كان المحتوى طويلًا */
 
-    /* --- استعد هذه الأسطر --- */
-    position: fixed;
-    top: 0; /* ضعه في أعلى الهيدر */
-    right: 0; /* ضعه على الجانب الأيمن */
-    height: 100vh; /* ليأخذ كامل ارتفاع الشاشة (وليس 100% من .app-body) */
-    z-index: 1000; /* ليكون فوق الخريطة إذا تداخلت */
-    /* --- --- */
-
-    overflow-y: auto; /* جيد للحفاظ عليه إذا كان المحتوى طويلًا */
-    /* flex-shrink: 0; -- ليس ضروريًا مع position: fixed */
+    position: fixed; /* << تثبيت الشريط الجانبي */
+    /* top: ارتفاع الهيدر; */ /*  عليك حساب ارتفاع الهيدر (main-header) بالـ px ووضعه هنا */
+                             /* مثال: إذا كان ارتفاع الهيدر 70px، ضع top: 70px; */
+                             /* إذا كنت لا تعرف ارتفاع الهيدر، يمكنك أن تبدأ بـ top: 0; ثم تضبط لاحقًا */
+    right: 0; /* على الجانب الأيمن من الشاشة */
+    /* height: calc(100vh - ارتفاع الهيدر); */ /*  نفس ارتفاع الهيدر المستخدم في top */
+                                            /* مثال: height: calc(100vh - 70px); */
+                                            /* إذا بدأت بـ top: 0;، استخدم height: 100vh; */
+    z-index: 1000; /* ليكون فوق الخريطة إذا حدث تداخل */
 }
         #layers-control-container {
             margin-bottom: 20px;
