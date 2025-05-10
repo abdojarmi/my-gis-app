@@ -703,17 +703,29 @@ if (commentForm && commentsListDiv) {
         textP.style.margin = "5px 0 0 0";
         newComment.appendChild(textP);
 
-        // إزالة رسالة "لا توجد تعليقات" إذا كانت موجودة
-        var noCommentsEmElement = commentsListDiv.querySelector('p > em'); // نبحث عن em داخل p
-        if (noCommentsEmElement) {
-            var parentParagraph = noCommentsEmElement.parentElement; // نحصل على العنصر <p> الأب
-            if (parentParagraph && parentParagraph.parentNode === commentsListDiv) { // نتأكد أن <p> هو ابن مباشر لـ commentsListDiv
-                commentsListDiv.removeChild(parentParagraph);
-                console.log("'No comments' paragraph removed.");
-            } else {
-                console.warn("Could not find the 'no comments' paragraph correctly to remove it, or it's not a direct child.");
+           // إزالة رسالة "لا توجد تعليقات" إذا كانت موجودة
+        // الطريقة الأولى: البحث عن الفقرة التي تحتوي على النص المحدد
+        var paragraphsInList = commentsListDiv.getElementsByTagName('p');
+        for (var i = 0; i < paragraphsInList.length; i++) {
+            var pElement = paragraphsInList[i];
+            // نتحقق مما إذا كان النص داخل الفقرة أو داخل عنصر <em> بداخلها
+            var textContent = pElement.textContent || pElement.innerText;
+            if (textContent.includes("لا توجد تعليقات حاليًا")) {
+                if (pElement.parentNode === commentsListDiv) { // تأكد أنه ابن مباشر
+                    commentsListDiv.removeChild(pElement);
+                    console.log("'No comments' paragraph containing the specific text removed.");
+                    break; // نخرج من الحلقة بعد إزالة العنصر
+                }
             }
         }
+
+        // الطريقة الثانية (إذا كنت متأكدًا من أن العنصر <p> هو الوحيد أو الأول):
+        // هذا الكود سيعمل إذا كان <p><em>...</em></p> هو العنصر الوحيد أو الأول
+        // var initialMessageParagraph = commentsListDiv.querySelector('#comments-list > p:first-child > em');
+        // if (initialMessageParagraph && initialMessageParagraph.parentElement.parentNode === commentsListDiv) {
+        //     commentsListDiv.removeChild(initialMessageParagraph.parentElement);
+        //     console.log("Initial 'no comments' message (paragraph) removed.");
+        // }
         commentsListDiv.appendChild(newComment);
 
         // مسح النموذج
