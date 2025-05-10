@@ -8,38 +8,31 @@
           integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
           crossorigin=""/>
     <style>
-        html, body { /* ضمان أن html يأخذ الارتفاع الكامل أيضًا */
-            height: 100%;
+        body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-        body {
             display: flex;
             flex-direction: column;
-            /* لا نضع height: 100vh هنا إذا أردنا الصفحة كلها تتمدد */
-            /* بدلاً من ذلك، نضمن أن العناصر تأخذ ما تحتاجه */
+            height: 100vh;
+            overflow: hidden; /* لمنع تمرير الصفحة الرئيسية */
         }
         .main-header {
-            background-color: #f8f9fa;
+            background-color: #f8f9fa; /* لون أفتح قليلاً */
             padding: 15px 20px;
-            text-align: center;
+            text-align: center; /* يبقي النصوص في الوسط */
             border-bottom: 1px solid #dee2e6;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0; /* مهم: الهيدر لا يتقلص */
-            position: sticky; /* لتثبيت الهيدر في الأعلى عند التمرير */
-            top: 0;
-            z-index: 1002; /* أعلى من النافذة المنبثقة للاتصال إذا لزم الأمر */
+            display: flex; /* لتوزيع العناصر داخل الهيدر */
+            justify-content: space-between; /* لتوزيع المسافات */
+            align-items: center; /* لمحاذاة العناصر عمودياً */
         }
-        .header-title-group {
+        .header-title-group { /* حاوية للنصوص لتظل في الوسط إذا لزم الأمر */
             text-align: center;
-            flex-grow: 1;
+            flex-grow: 1; /* يسمح لها بأخذ المساحة المتاحة إذا لم يكن الزر كبيراً جداً */
         }
         .main-header h1 {
             margin: 0;
-            font-size: 1.8em;
+            font-size: 1.8em; /* أكبر قليلاً */
             color: #343a40;
         }
         .main-header p {
@@ -47,7 +40,7 @@
             font-size: 1em;
             color: #6c757d;
         }
-        #contactBtnHeader {
+        #contactBtnHeader { /* تنسيق زر "اتصل بنا" في الهيدر */
             padding: 8px 15px;
             font-size: 0.95em;
             cursor: pointer;
@@ -55,7 +48,7 @@
             color: white;
             border: none;
             border-radius: 4px;
-            margin-left: 20px;
+            margin-left: 20px; /* مسافة عن الحافة إذا كان الهيدر RTL */
         }
         #contactBtnHeader:hover {
             background-color: #0056b3;
@@ -63,17 +56,13 @@
 
         .app-body {
             display: flex;
-            /* flex-grow: 1; -- سنعطيه ارتفاعًا محددًا أكثر */
-            height: calc(100vh - 75px - 50px); /* مثال: 100% من ارتفاع الشاشة ناقص ارتفاع الهيدر (75px تقريبًا) و مساحة بسيطة للتعليقات */
-            /* أو يمكنك استخدام نسبة مئوية ثابتة إذا كنت تفضل, مثل height: 70vh; */
-            min-height: 400px; /* ارتفاع أدنى للخريطة */
-            overflow: hidden; /* لمنع تمرير الخريطة نفسها */
-            flex-shrink: 0; /* هذا الجزء لا يتقلص */
+            flex-grow: 1;
+            overflow: hidden;
         }
         #map-container {
             flex-grow: 1;
             position: relative;
-            height: 100%;
+            height: 100%; /* Ensure map container takes full height of app-body */
             display: flex;
         }
         #map {
@@ -88,7 +77,7 @@
             z-index: 1000;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 10px; /* مسافة بين عنصر التكبير ووسيلة الإيضاح */
         }
        #left-controls-area .leaflet-control-zoom {
             margin-bottom: 0 !important;
@@ -101,7 +90,7 @@
             background-color: rgba(255,255,255,0.95);
             padding: 10px;
             border: 1px solid #ccc;
-            max-height: calc(100% - 80px); /* نسبة إلى ارتفاع #left-controls-area */
+            max-height: calc(100vh - 150px);
             overflow-y: auto;
             font-size: 12px;
             width: 260px;
@@ -117,7 +106,17 @@
             padding-bottom: 5px;
             font-weight: bold;
         }
-        /* ... (باقي تنسيقات custom-legend) ... */
+        #custom-legend strong {
+            display: block;
+            margin-bottom: 5px;
+            padding-bottom: 3px;
+            font-weight: bold;
+            color: #333;
+        }
+        #custom-legend::-webkit-scrollbar { width: 8px; }
+        #custom-legend::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        #custom-legend::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        #custom-legend::-webkit-scrollbar-thumb:hover { background: #555; }
 
        #right-sidebar {
             width: 300px;
@@ -127,40 +126,157 @@
             border-left: 1px solid #dee2e6;
             display: flex;
             flex-direction: column;
-            height: 100%; /* ليمتد على ارتفاع .app-body */
-            overflow-y: auto; /* إذا كان الشريط الجانبي أطول من الخريطة */
-            box-sizing: border-box;
-            /* position: fixed; -- تم إزالته ليكون جزءًا من التدفق العادي داخل .app-body */
-            /* z-index: 1000; -- قد لا يكون ضروريًا إذا كان ضمن التدفق */
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            z-index: 1000;
         }
-        /* ... (باقي تنسيقات right-sidebar و layers-control-container و export-button-container) ... */
+        #layers-control-container {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        #layers-control-container .leaflet-control-layers {
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            border: none !important;
+            width: 100% !important;
+            height: 100% !important;
+            display: flex;
+            flex-direction: column;
+            background-color: transparent !important;
+        }
+        #layers-control-container .leaflet-control-layers-list {
+            flex-grow: 1;
+            overflow-y: auto !important;
+            padding: 0 10px 10px 10px;
+        }
+        #layers-control-container .leaflet-control-layers-scrollbar::-webkit-scrollbar { width: 8px; }
+        #layers-control-container .leaflet-control-layers-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        #layers-control-container .leaflet-control-layers-scrollbar::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        #layers-control-container .leaflet-control-layers-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        .leaflet-control-layers-title {
+            text-align:center;
+            padding:10px 0 10px 0;
+            border-bottom:1px solid #ccc;
+            margin-bottom:5px;
+            font-weight:bold;
+            background-color: white;
+            flex-shrink: 0;
+        }
+        .leaflet-control-layers-selector {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .leaflet-control-layers-selector input {
+             margin-left: 8px;
+        }
+
+        #export-button-container {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        #export-button-container button {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.05em;
+            font-weight: bold;
+            transition: background-color 0.2s ease-in-out;
+        }
+        #export-button-container button:hover {
+            background-color: #218838;
+        }
+
+        .custom-svg-div-icon, .custom-text-div-icon {
+            background: transparent !important;
+            border: none !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
 
         /* --- CSS للنافذة المنبثقة (Modal) --- */
-        .modal { /* ... (كما هي) ... */ }
-        .modal-content { /* ... (كما هي) ... */ }
-        /* ... (باقي تنسيقات النافذة المنبثقة) ... */
-
-        /* --- CSS لقسم التعليقات --- */
-        #comments-section-container {
-            padding: 20px;
-            background-color: #e9ecef;
-            border-top: 1px solid #ced4da;
-            direction: rtl;
-            width: 100%; /* ليأخذ عرض الصفحة بالكامل */
-            box-sizing: border-box;
-            /* لا نضع max-height أو overflow-y: auto هنا إذا أردنا الصفحة كلها تتمدد */
-            flex-shrink: 0; /* هذا القسم لا يتقلص */
+        .modal {
+          display: none; /* مخفية بشكل افتراضي */
+          position: fixed; /* تبقى في مكانها حتى عند التمرير */
+          z-index: 1001; /* أعلى من right-sidebar إذا كان right-sidebar يستخدم 1000 */
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          overflow: auto; /* تمكين التمرير إذا كان المحتوى كبيرًا */
+          background-color: rgba(0,0,0,0.5); /* خلفية سوداء شبه شفافة */
+          direction: rtl; /* لتناسب المحتوى العربي */
         }
-        .comments-section { /* ... (كما هي) ... */ }
-        /* ... (باقي تنسيقات قسم التعليقات) ... */
+        .modal-content {
+          background-color: #fefefe;
+          margin: 15% auto; /* 15% من الأعلى وفي الوسط */
+          padding: 20px;
+          border: 1px solid #888;
+          width: 80%; /* يمكن تعديل العرض */
+          max-width: 400px; /* عرض أقصى للنافذة */
+          border-radius: 8px;
+          position: relative; /* لتموضع زر الإغلاق بشكل صحيح */
+          box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+        }
+        .modal-content h2 {
+          margin-top: 0;
+          text-align: center;
+        }
+        .modal-content p {
+          line-height: 1.6;
+          margin-bottom: 15px;
+          text-align: right; /* لضمان محاذاة النص لليمين */
+        }
+        .modal-content a {
+          color: #007bff; /* لون الرابط */
+          text-decoration: none;
+        }
+        .modal-content a:hover {
+          text-decoration: underline;
+        }
+        .close-button {
+          color: #aaa;
+          position: absolute; /* تموضع مطلق بالنسبة لـ .modal-content */
+          left: 15px; /* إلى اليسار في الواجهة العربية */
+          top: 10px;
+          font-size: 28px;
+          font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+          color: black;
+          text-decoration: none;
+          cursor: pointer;
+        }
+        /* --- نهاية CSS للنافذة المنبثقة --- */
+
     </style>
 </head>
 <body>
     <header class="main-header">
+        <!-- مجموعة العناوين -->
         <div class="header-title-group">
             <h1>نظام المعلومات الجغرافية لجماعة العطاوية</h1>
             <p>مشروع أكاديمي</p>
         </div>
+        <!-- زر اتصل بنا في الهيدر -->
         <button id="contactBtnHeader">اتصل بنا</button>
     </header>
 
@@ -168,7 +284,7 @@
         <div id="map-container">
             <div id="map"></div>
             <div id="left-controls-area">
-                <!-- عناصر التحكم بالخريطة (تكبير، وسيلة إيضاح) ستضاف هنا بواسطة JS -->
+                <!-- عنصر التحكم بالتكبير ووسيلة الإيضاح سيتم إضافتهما هنا بواسطة JS -->
             </div>
         </div>
         <div id="right-sidebar">
@@ -181,41 +297,7 @@
         </div>
     </div>
 
-    <!-- قسم الملاحظات والتعليقات -->
-    <div id="comments-section-container">
-        <!-- يمكنك إضافة زر إظهار/إخفاء هنا إذا أردت الحل الثاني -->
-        <!-- <button id="toggleCommentsBtn">إظهار التعليقات</button> -->
-        <div class="comments-section">
-            <h2>أضف ملاحظتك أو تعليقك</h2>
-            <form id="comment-form">
-                <div>
-                    <label for="comment-name">الاسم (اختياري):</label>
-                    <input type="text" id="comment-name" name="name">
-                </div>
-                <div>
-                    <label for="comment-text">تعليقك:</label>
-                    <textarea id="comment-text" name="comment" rows="4" required></textarea>
-                </div>
-                <button type="submit">إرسال التعليق</button>
-            </form>
-
-            <div class="existing-comments">
-                <h3>التعليقات والملاحظات الحالية</h3>
-                <ul id="comments-list">
-                    <li>
-                        <p class="comment-author"><strong>أحمد علي</strong> <span class="comment-date">(منذ 5 دقائق)</span></p>
-                        <p class="comment-body">يوجد خطأ في اسم الشارع "شارع النصر"، الاسم الصحيح هو "شارع الحرية".</p>
-                    </li>
-                    <li>
-                        <p class="comment-author"><strong>زائر</strong> <span class="comment-date">(منذ ساعتين)</span></p>
-                        <p class="comment-body">اقترح إضافة طبقة توضح مواقع المدارس الابتدائية. شكراً على هذا المجهود.</p>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <!-- النافذة المنبثقة (Modal) لـ "اتصل بنا" -->
+    <!-- النافذة المنبثقة (Modal) - توضع هنا قبل إغلاق body -->
     <div id="contactModal" class="modal">
       <div class="modal-content">
         <span class="close-button">×</span>
@@ -228,6 +310,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
-    <script src="script.js"></script>
+    <script src="script.js"></script> <!-- تأكد أن script.js يتضمن الكود الخاص بالنافذة المنبثقة -->
 </body>
 </html>
