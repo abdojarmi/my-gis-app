@@ -110,20 +110,26 @@
 
 
        #right-sidebar {
-            width: 300px;
-            min-width: 280px; /* عرض أدنى */
-            flex-shrink: 0; /* الشريط الجانبي لا يتقلص */
-            background-color: #f8f9fa;
-            border-left: 1px solid #dee2e6;
-            padding: 15px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            height: 100%; /* ليمتد على ارتفاع .app-body */
-            overflow-y: auto; /* إذا كان محتوى الشريط أطول */
-            /* position: fixed; -- تمت إزالته ليكون جزءًا من تدفق .app-body */
-            /* z-index: 1000; -- قد لا يكون ضروريًا الآن */
-        }
+    width: 300px;
+    min-width: 280px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-left: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box; /* جيد إضافته */
+
+    /* --- استعد هذه الأسطر --- */
+    position: fixed;
+    top: 0; /* ضعه في أعلى الهيدر */
+    right: 0; /* ضعه على الجانب الأيمن */
+    height: 100vh; /* ليأخذ كامل ارتفاع الشاشة (وليس 100% من .app-body) */
+    z-index: 1000; /* ليكون فوق الخريطة إذا تداخلت */
+    /* --- --- */
+
+    overflow-y: auto; /* جيد للحفاظ عليه إذا كان المحتوى طويلًا */
+    /* flex-shrink: 0; -- ليس ضروريًا مع position: fixed */
+}
         #layers-control-container {
             margin-bottom: 20px;
             border: 1px solid #ddd;
