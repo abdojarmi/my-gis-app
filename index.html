@@ -292,8 +292,8 @@
             <div id="layers-control-container">
                 <!-- عنصر التحكم بالطبقات سيتم نقله هنا -->
             </div>
-            <div id="export-button-container">
-                <button id="export-data-btn">إخراج البيانات</button>
+            <div id="comments-button-container"> <!-- غيرنا الـ ID للحاوية -->
+                <button id="showCommentsBtn">عرض التعليقات والملاحظات</button> <!-- وغيرنا ID الزر والنص -->
             </div>
         </div>
     </div>
@@ -307,7 +307,30 @@
         <p>👔 الملف الشخصي على LinkedIn: <a href="https://www.linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer">ملفنا على LinkedIn</a></p>
       </div>
     </div>
-
+<!-- النافذة المنبثقة (Modal) للتعليقات والملاحظات -->
+<div id="commentsModal" class="modal"> <!-- لاحظ ID جديد: commentsModal -->
+  <div class="modal-content">
+    <span class="close-button" id="closeCommentsModalBtn">×</span> <!-- زر إغلاق خاص بها -->
+    <h2>التعليقات والملاحظات</h2>
+    <div id="comments-list">
+        <p><em>لا توجد تعليقات حاليًا.</em></p>
+        <!-- التعليقات ستضاف هنا بواسطة JavaScript لاحقًا (اختياري) -->
+    </div>
+    <hr>
+    <h3>أضف تعليقك:</h3>
+    <form id="commentForm">
+        <div>
+            <label for="commenterName">الاسم (اختياري):</label>
+            <input type="text" id="commenterName" name="commenterName" style="width: 95%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+        <div>
+            <label for="commentText">تعليقك:</label>
+            <textarea id="commentText" name="commentText" rows="4" required style="width: 95%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+        </div>
+        <button type="submit" style="padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">إرسال التعليق</button>
+    </form>
+  </div>
+</div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
