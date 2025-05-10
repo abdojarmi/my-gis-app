@@ -65,7 +65,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const detailedStyles = {
-        // ... (كل detailedStyles كما هي) ...
         "الصحة والمجال الاجتماعي": {
             displayName: "الصحة والمجال الاجتماعي",
             subcategories: {
@@ -618,180 +617,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // =============================================================
     // == كود النافذة المنبثقة لـ "اتصل بنا" (Contact Us Modal) ==
     // =============================================================
-    var contactModal = document.getElementById("contactModal"); // تم تغيير الاسم لتجنب التضارب
-    var btnOpenContactModal = document.getElementById("contactBtnHeader"); // تأكد أن هذا الـ ID يطابق زر "اتصل بنا" في HTML
-    var spanCloseContactModal = document.getElementsByClassName("close-button")[0]; // يفترض وجود زر إغلاق واحد بهذا الكلاس للنافذة
+    var modal = document.getElementById("contactModal");
+    var btnContact = document.getElementById("contactBtnHeader"); // تأكد أن هذا الـ ID يطابق زر "اتصل بنا" في HTML
+    var spanClose = document.getElementsByClassName("close-button")[0]; // يفترض وجود زر إغلاق واحد بهذا الكلاس
 
-    if (btnOpenContactModal && contactModal) {
-        btnOpenContactModal.onclick = function() {
-            contactModal.style.display = "block";
+    // التحقق من وجود العناصر قبل إضافة المستمعين
+    if (btnContact && modal) {
+        // عندما يضغط المستخدم على الزر "اتصل بنا"، افتح النافذة
+        btnContact.onclick = function() {
+            modal.style.display = "block";
         }
     }
 
-    if (spanCloseContactModal && contactModal) {
-        spanCloseContactModal.onclick = function() {
-            contactModal.style.display = "none";
+    if (spanClose && modal) {
+        // عندما يضغط المستخدم على <span> (x)، أغلق النافذة
+        spanClose.onclick = function() {
+            modal.style.display = "none";
         }
     }
 
     // عندما يضغط المستخدم في أي مكان خارج محتوى النافذة، أغلقها
-    // تم تعديل هذا الجزء ليكون أكثر تحديدًا لنافذة "اتصل بنا" فقط
-    window.addEventListener('click', function(event) {
-        if (contactModal && event.target == contactModal) {
-            contactModal.style.display = "none";
+    window.onclick = function(event) {
+        if (modal && event.target == modal) { // إذا كان الهدف هو الخلفية الرمادية للنافذة
+            modal.style.display = "none";
         }
-    });
+    }
     // =============================================================
     // == نهاية كود النافذة المنبثقة ==
     // =============================================================
 
-
-    // =============================================================
-    // == كود نظام التعليقات (الجانب العميل فقط حاليًا) ==
-    // =============================================================
-    const commentForm = document.getElementById('comment-form');
-    const commentsList = document.getElementById('comments-list');
-
-    // دالة بسيطة لتجنب إدخال HTML ضار (يجب تحسينها في الإنتاج)
-    function escapeHTML(str) {
-        if (typeof str !== 'string') return str;
-        const map = {
-            '&': '&',
-            '<': '<',
-            '>': '>',
-            '"': '"',
-            "'": '''
-        };
-        return str.replace(/[&<>"']/g, function (m) { return map[m]; });
-    }
-
-    // (اختياري) دالة لعرض التعليقات من مصفوفة (ستأتي من الخادم لاحقًا)
-    function displayComments(commentsArray) {
-        if (!commentsList) return;
-        commentsList.innerHTML = ''; // مسح التعليقات القديمة
-        commentsArray.forEach(comment => {
-            const listItem = document.createElement('li');
-            // استخدام تنسيق تاريخ ووقت مقروء
-            const commentDate = comment.date ? new Date(comment.date).toLocaleString('ar-EG', {
-                year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            }) : new Date().toLocaleDateString();
-
-            listItem.innerHTML = `
-                <p class="comment-author"><strong>${escapeHTML(comment.name) || 'زائر'}</strong> <span class="comment-date">(${commentDate})</span></p>
-                <p class="comment-body">${escapeHTML(comment.text)}</p>
-            `;
-            commentsList.appendChild(listItem);
-        });
-    }
-
-
-    if (commentForm) {
-        commentForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // منع الإرسال التقليدي للنموذج
-
-            const nameInput = document.getElementById('comment-name');
-            const commentTextInput = document.getElementById('comment-text');
-
-            const commentData = {
-                name: nameInput ? nameInput.value.trim() : '',
-                text: commentTextInput ? commentTextInput.value.trim() : '',
-                date: new Date().toISOString() // إضافة تاريخ ووقت التعليق بصيغة ISO
-            };
-
-            if (!commentData.text) {
-                alert('يرجى كتابة تعليق.');
-                return;
-            }
-
-            // --- هنا ستقوم بإرسال commentData إلى الخادم ---
-            console.log('إرسال التعليق (محاكاة):', commentData);
-            // alert('تم إرسال تعليقك بنجاح! (هذه محاكاة، لم يتم الحفظ الفعلي بعد).');
-
-            // (محاكاة) إضافة التعليق إلى القائمة المعروضة مباشرة
-            // في التطبيق الحقيقي، يجب أن تسترجع القائمة المحدثة من الخادم أو تعتمد على رده
-            const newCommentForDisplay = {
-                name: commentData.name || 'زائر',
-                text: commentData.text,
-                date: commentData.date // استخدام التاريخ من commentData
-            };
-            const listItem = document.createElement('li');
-            const displayDate = new Date(newCommentForDisplay.date).toLocaleString('ar-EG', {
-                 hour: '2-digit', minute: '2-digit'
-            });
-
-
-            listItem.innerHTML = `
-                <p class="comment-author"><strong>${escapeHTML(newCommentForDisplay.name)}</strong> <span class="comment-date">( الآن - ${displayDate})</span></p>
-                <p class="comment-body">${escapeHTML(newCommentForDisplay.text)}</p>
-            `;
-            if (commentsList) {
-                if (commentsList.firstChild) {
-                    commentsList.insertBefore(listItem, commentsList.firstChild);
-                } else {
-                    commentsList.appendChild(listItem);
-                }
-            }
-
-            // مسح حقول النموذج بعد الإرسال (المحاكى)
-            if (nameInput) nameInput.value = '';
-            if (commentTextInput) commentTextInput.value = '';
-
-            /*
-            // مثال لكيفية استخدام fetch لإرسال البيانات إلى الخادم (يتطلب خادمًا يستمع)
-            fetch('/api/comments', { // استبدل '/api/comments' بنقطة النهاية الفعلية لخادمك
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(commentData),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => { throw new Error('خطأ من الخادم: ' + text) });
-                }
-                return response.json();
-            })
-            .then(savedComment => {
-                console.log('تم حفظ التعليق في الخادم:', savedComment);
-                alert('تم حفظ تعليقك بنجاح!');
-                // (إعادة تحميل التعليقات أو إضافة التعليق الجديد ديناميكيًا بناءً على رد الخادم)
-                // loadComments(); // أو طريقة أكثر كفاءة لتحديث القائمة
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert('حدث خطأ أثناء إرسال التعليق: ' + error.message + '. يرجى المحاولة مرة أخرى.');
-            });
-            */
-        });
-    }
-
-    // (اختياري) دالة لتحميل التعليقات من الخادم عند تحميل الصفحة
-    function loadComments() {
-        if (!commentsList) return;
-        console.log("جاري تحميل التعليقات (محاكاة)...");
-        // هنا يجب أن يكون هناك كود fetch لجلب التعليقات من الخادم
-        // مثال إذا كان لديك تعليقات ثابتة في HTML وتريد إزالتها والاعتماد على JS
-        // يجب إزالة الأمثلة الثابتة من HTML أولاً
-        if (commentsList.children.length > 0) { // إذا كانت هناك أمثلة في HTML
-            console.log("تم العثور على تعليقات ثابتة في HTML، سيتم الاحتفاظ بها مؤقتًا.");
-        }
-        /*
-        fetch('/api/comments') // استبدل بنقطة النهاية الفعلية
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok.');
-                return response.json();
-            })
-            .then(data => {
-                displayComments(data); // افترض أن data هي مصفوفة من كائنات التعليقات
-            })
-            .catch(error => console.error('Error loading comments:', error));
-        */
-    }
-
-    // استدعاء تحميل التعليقات عند تحميل الصفحة (يمكنك تفعيله عندما يكون لديك خادم)
-    // loadComments();
-    // =============================================================
-    // == نهاية كود نظام التعليقات ==
-    // =============================================================
-
-}); // نهاية مستمع DOMContentLoaded الكلي
+}); // نهاية مستمع DOMContentLoaded
