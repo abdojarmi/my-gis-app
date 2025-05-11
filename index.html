@@ -80,13 +80,19 @@
             flex-direction: column;
             gap: 10px; /* مسافة بين عنصر التكبير ووسيلة الإيضاح */
         }
-       #left-controls-area .leaflet-control-zoom {
-            margin-bottom: 0 !important;
-            box-shadow: 0 1px 5px rgba(0,0,0,0.4) !important;
-            border-radius: 5px !important;
-            position: relative !important;
-            left: 28px !important;
-        }
+#left-controls-area .leaflet-control-zoom {
+    /* الإضافات الجديدة لإزالة الامتداد */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    height: auto !important;
+
+    /* تعديلاتك الحالية موجودة هنا أيضًا (مع تعديل بسيط للـ margin-bottom كمقترح) */
+    margin-bottom: 10px !important; /* عدل هذه القيمة حسب الحاجة */
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4) !important;
+    border-radius: 5px !important;
+    position: relative !important;
+    left: 28px !important;
+}
        #custom-legend {
             background-color: rgba(255,255,255,0.95);
             padding: 10px;
