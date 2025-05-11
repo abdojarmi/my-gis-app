@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
             displayName: "التشوير الطرقي",
             subcategories: {
                 "أضواء مرور": { displayName: "أضواء مرور", style: { type: 'text', content: '🚦', size: 18 } },
-                "علامة توقف": { displayName: "علامة توقف", style: { type: 'text', content: '🛑', size: 14, color: 'red', backgroundColor: 'white', borderColor: 'red' } },
+                "علامة توقف": { displayName: "علامة توقف", style: { type: 'text', content: '🛑', size: 14, color: 'red' } },
                 "علامة إلزامية": { displayName: "علامة إلزامية", style: { type: 'text', content: '➡️', size: 14, color: 'white', backgroundColor: 'blue', borderColor: 'blue' } },
                 "علامة تحديد السرعة": { displayName: "علامة تحديد السرعة", style: { type: 'text', content: '⁶⁰', size: 14, color: 'black', backgroundColor: 'white', borderColor: 'red', borderRadius: '50%'} },
                 "علامة تحذير": { displayName: "علامة تحذير", style: { type: 'text', content: '⚠️', size: 14, color: 'black', backgroundColor: 'yellow', borderColor: 'black' } },
