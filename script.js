@@ -628,7 +628,124 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             }
         }
     }
+document.addEventListener('DOMContentLoaded', function () {
+    const exportButton = document.getElementById('exportPdfButton');
+    const mapElement = document.getElementById('map'); // <-- تأكد أن هذا هو الـ ID الصحيح لـ div الخريطة
+    const legendElement = document.getElementById('custom-legend'); // <-- تأكد أن هذا هو الـ ID الصحيح لـ div المفتاح
 
+    if (exportButton && mapElement && legendElement) {
+        exportButton.addEventListener('click', function () {
+            // رسالة للمستخدم (اختياري)
+            exportButton.disabled = true;
+            exportButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-2 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                جارٍ الإعداد...
+            `;
+
+            // إخفاء عناصر التحكم في الخريطة مؤقتًا إذا أردت (مثل أزرار التكبير/التصغير)
+            // مثال: const zoomControl = document.querySelector('.leaflet-control-zoom');
+            // if (zoomControl) zoomControl.style.display = 'none';
+
+
+            // مهلة صغيرة للسماح لأي تحديثات في الواجهة بالحدوث
+            setTimeout(() => {
+                // الخيارات لـ html2canvas (يمكنك تعديلها)
+                const canvasOptions = {
+                    useCORS: true, // مهم إذا كانت لديك صور من نطاقات أخرى (مثل مربعات الخرائط)
+                    allowTaint: true,
+                    logging: false, // تعطيل تسجيلات html2canvas في الكونسول
+                    scale: window.devicePixelRatio > 1 ? 2 : 1, // تحسين الجودة على شاشات Retina
+                    onclone: (document) => {
+                        // يمكنك إجراء تعديلات على الـ DOM المستنسخ قبل التقاط الصورة
+                        // مثلاً، إخفاء عناصر معينة فقط أثناء الالتقاط
+                        // const clonedExportButton = document.getElementById('exportPdfButton');
+                        // if (clonedExportButton) clonedExportButton.style.display = 'none';
+                    }
+                };
+
+                Promise.all([
+                    html2canvas(mapElement, canvasOptions),
+                    html2canvas(legendElement, canvasOptions)
+                ]).then(function ([mapCanvas, legendCanvas]) {
+                    // إعادة إظهار عناصر التحكم في الخريطة إذا تم إخفاؤها
+                    // if (zoomControl) zoomControl.style.display = 'block';
+
+                    const mapImgData = mapCanvas.toDataURL('image/png');
+                    const legendImgData = legendCanvas.toDataURL('image/png');
+
+                    // استخدام jsPDF (تأكد أن window.jspdf.jsPDF موجود)
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'landscape', // أو 'portrait'
+                        unit: 'mm',
+                        format: 'a4' // أو أبعاد مخصصة
+                    });
+
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    const margin = 10; // هامش 10 مم
+
+                    // أبعاد الخريطة في الـ PDF
+                    // حاول الحفاظ على نسبة العرض إلى الارتفاع الأصلية للخريطة
+                    const mapAspectRatio = mapCanvas.width / mapCanvas.height;
+                    let mapPdfWidth = pdfWidth - (2 * margin);
+                    let mapPdfHeight = mapPdfWidth / mapAspectRatio;
+
+                    if (mapPdfHeight > pdfHeight * 0.7) { // إذا كانت الخريطة طويلة جدًا
+                        mapPdfHeight = pdfHeight * 0.7;
+                        mapPdfWidth = mapPdfHeight * mapAspectRatio;
+                    }
+
+                    // إضافة صورة الخريطة
+                    pdf.addImage(mapImgData, 'PNG', margin, margin, mapPdfWidth, mapPdfHeight);
+
+                    // أبعاد المفتاح في الـ PDF
+                    const legendAspectRatio = legendCanvas.width / legendCanvas.height;
+                    let legendPdfHeight = pdfHeight - mapPdfHeight - (3 * margin); // مساحة متبقية للمفتاح
+                    if (legendPdfHeight > 50) legendPdfHeight = 50; // حد أقصى لارتفاع المفتاح
+                    let legendPdfWidth = legendPdfHeight * legendAspectRatio;
+                    if (legendPdfWidth > pdfWidth - (2 * margin)) { // إذا كان المفتاح عريضًا جدًا
+                        legendPdfWidth = pdfWidth - (2 * margin);
+                        legendPdfHeight = legendPdfWidth / legendAspectRatio;
+                    }
+
+
+                    // إضافة صورة المفتاح أسفل الخريطة
+                    pdf.addImage(legendImgData, 'PNG', margin, margin + mapPdfHeight + margin, legendPdfWidth, legendPdfHeight);
+
+                    // إضافة عنوان أو تاريخ (اختياري)
+                    pdf.setFontSize(10);
+                    pdf.text('خريطة مُصدَّرة', margin, margin - 3);
+                    pdf.text(new Date().toLocaleDateString('ar-EG'), pdfWidth - margin, margin - 3, { align: 'right' });
+
+
+                    pdf.save('خريطتي.pdf');
+
+                    // إعادة الزر إلى حالته الطبيعية
+                    exportButton.disabled = false;
+                    exportButton.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        PDF
+                    `;
+
+                }).catch(function(error) {
+                    console.error('خطأ أثناء إنشاء PDF:', error);
+                    alert('حدث خطأ أثناء محاولة إخراج الخريطة. يرجى مراجعة الكونسول.');
+                    // إعادة الزر إلى حالته الطبيعية
+                    exportButton.disabled = false;
+                    exportButton.innerHTML = `
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                         PDF
+                    `;
+                });
+            }, 100); // مهلة للسماح بالتحديث
+        });
+    } else {
+        if (!exportButton) console.error('لم يتم العثور على زر الإخراج exportPdfButton');
+        if (!mapElement) console.error('لم يتم العثور على عنصر الخريطة map');
+        if (!legendElement) console.error('لم يتم العثور على عنصر المفتاح custom-legend');
+    }
+});
     // =============================================================
     // == كود النافذة المنبثقة لـ "اتصل بنا" (Contact Us Modal) ==
     // =============================================================
