@@ -142,6 +142,27 @@
 #left-controls-area .leaflet-control-zoom a.leaflet-control-zoom-out {
     border-bottom: none !important;
 }
+        
+#exportPdfButton {
+    position: fixed; /* أو absolute إذا كان داخل حاوية relative */
+    bottom: 20px;
+    left: 20px; /* في أقصى اليسار */
+    z-index: 1000; /* ليكون فوق عناصر الخريطة الأخرى */
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 5px; /* مسافة بين الأيقونة والنص */
+    font-family: inherit; /* ليستخدم نفس خط الصفحة */
+}
+
+#exportPdfButton:hover {
+    background-color: #f0f0f0;
+} 
        #custom-legend {
             background-color: rgba(255,255,255,0.95);
             padding: 10px;
@@ -349,6 +370,15 @@
                 <!-- عنصر التحكم بالتكبير ووسيلة الإيضاح سيتم إضافتهما هنا بواسطة JS -->
             </div>
         </div>
+        <!-- يمكنك وضع هذا في أي مكان مناسب في body، وسنستخدم CSS لتموضعه -->
+<button id="exportPdfButton" title="إخراج الخريطة إلى PDF">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+    </svg>
+    PDF
+</button>
         <div id="right-sidebar">
             <div id="layers-control-container">
                 <!-- عنصر التحكم بالطبقات سيتم نقله هنا -->
@@ -395,6 +425,10 @@
     </form>
   </div>
 </div>
+    <!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- html2canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
