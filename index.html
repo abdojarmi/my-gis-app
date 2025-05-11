@@ -80,18 +80,67 @@
             flex-direction: column;
             gap: 10px; /* مسافة بين عنصر التكبير ووسيلة الإيضاح */
         }
+/* --- حاوية أزرار التكبير والتصغير --- */
 #left-controls-area .leaflet-control-zoom {
-    /* الإضافات الجديدة لإزالة الامتداد */
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    /* 1. اجعل عرض الحاوية يقتصر على محتواها (الأزرار) */
+    width: fit-content !important; /* هذا هو التعديل الرئيسي للعرض */
+    /* أو جرب: display: inline-block !important; إذا لم يعمل fit-content (سيؤدي لتقليص العرض أيضًا) */
+    /* أو جرب: display: inline-flex !important; flex-direction: column; */
+
+    /* 2. تأكيد إزالة أي padding داخلي من جميع الجهات */
+    padding: 0 !important;
+
+    /* 3. لضمان أن الـ padding والـ border لا يزيدان من العرض/الارتفاع المحدد */
+    box-sizing: border-box !important;
+
+    /* 4. السماح لارتفاع الحاوية بأن يتحدد بمحتواها (الأزرار) */
     height: auto !important;
 
-    /* تعديلاتك الحالية موجودة هنا أيضًا (مع تعديل بسيط للـ margin-bottom كمقترح) */
-    margin-bottom: 10px !important; /* عدل هذه القيمة حسب الحاجة */
+    /* 5. لضمان أن زوايا الحاوية الدائرية تقص الأزرار بشكل صحيح */
+    overflow: hidden !important;
+
+    /* 6. خصائصك الحالية للمظهر والموضع */
+    margin-bottom: 5px !important; /* مسافة بين أزرار الزوم وقائمة الطبقات */
     box-shadow: 0 1px 5px rgba(0,0,0,0.4) !important;
     border-radius: 5px !important;
     position: relative !important;
+
+    /* 7. الموضع: left: 28px !important; */
+    /* هذه القيمة تدفع الحاوية. الآن بعد أن أصبح عرضها مناسبًا، يجب أن يكون التموضع صحيحًا. */
+    /* إذا كانت الصفحة RTL، قد تحتاج إلى استخدام right: 28px !important; أو تعديل left */
+    /* أو استخدام margin لتحديد المسافة من الحافة: */
+    /* margin-left: 28px !important; (إذا كانت LTR) أو margin-right: 28px !important; (إذا كانت RTL) */
+    /* بدلًا من position: relative و left/right إذا كان ذلك يسبب التباسًا */
     left: 28px !important;
+
+    /* إذا كانت #left-controls-area تستخدم display:flex و flex-direction:column */
+    /* يمكنك أيضًا تجربة align-self لمنع التمدد: */
+    /* align-self: flex-start !important; */ /* أو center أو flex-end */
+}
+
+/* --- أزرار التكبير والتصغير الفردية (+ و -) --- */
+#left-controls-area .leaflet-control-zoom a {
+    /* هذه الخصائص يجب أن تكون جيدة من ردك السابق، حجم الأزرار نفسه جيد */
+    height: 22px !important;         /* مثال: اضبط حسب الحاجة */
+    line-height: 22px !important;    /* اجعلها نفس قيمة الارتفاع */
+    width: 24px !important;          /* مثال: اضبط حسب الحاجة */
+    font-size: 18px !important;      /* مثال: اضبط حسب الحاجة */
+    padding: 0 !important;
+    margin: 0 !important;
+    text-align: center !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    border-radius: 0 !important; /* لأن الحاوية هي التي لها border-radius */
+}
+
+/* --- الخط الفاصل بين زر التكبير (+) وزر التصغير (-) --- */
+#left-controls-area .leaflet-control-zoom a.leaflet-control-zoom-in {
+    border-bottom: 1px solid rgba(0,0,0,0.15) !important;
+}
+
+/* --- زر التصغير السفلي (-) --- */
+#left-controls-area .leaflet-control-zoom a.leaflet-control-zoom-out {
+    border-bottom: none !important;
 }
        #custom-legend {
             background-color: rgba(255,255,255,0.95);
