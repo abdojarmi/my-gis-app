@@ -1,26 +1,33 @@
 // ====================================================================================
-// GIS SCRIPT FOR ATTAOUIA - V5.5 (PDF Export Integration)
+// GIS SCRIPT FOR ATTAOUIA - V5.4 (Layout Reorganization)
 // ====================================================================================
 
 // انتظر حتى يتم تحميل DOM بالكامل
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Main DOMContentLoaded Fired - Script Start'); // تتبع بداية السكريبت
 
-    // --- الحصول على عناصر DOM الرئيسية ---
-    // سيتم الحصول على بعض هذه العناصر لاحقًا عند الحاجة الفعلية إليها
-    // var mapDomElement = document.getElementById('map'); // متغير جديد للخريطة كعنصر DOM
+        // --- الحصول على عناصر DOM الرئيسية ---
+    var mapElement = document.getElementById('map'); // مثال إذا كنت تستخدمه لاحقًا
+    var contactModal = document.getElementById("contactModal");
+    var btnContact = document.getElementById("contactBtnHeader");
+    var spanClose = document.getElementsByClassName("close-button")[0]; // يفترض أنه الأول، وقد يكون هذا غير دقيق إذا كان لديك عدة أزرار إغلاق بنفس الكلاس
+
+    // --- الحصول على عناصر DOM الخاصة بالتعليقات ---
+    var showCommentsBtn = document.getElementById('showCommentsBtn');
+    var commentsModal = document.getElementById('commentsModal');
+    // انتبه: زر الإغلاق الخاص بنافذة التعليقات لديه ID فريد أعطيناه إياه
+    var closeCommentsModalBtn = document.getElementById('closeCommentsModalBtn'); // وليس getElementsByClassName
+    var commentForm = document.getElementById('commentForm');
+    var commentsListDiv = document.getElementById('comments-list');
 
     // 1. تهيئة الخريطة
-    var map = L.map('map', { // 'map' هو ID عنصر الـ div للخريطة
+    var map = L.map('map', {
         zoomControl: false // تعطيل عنصر التحكم بالتكبير الافتراضي، سنضيفه يدويًا
     }).setView([31.785, -7.285], 13);
-    console.log('Map initialized');
 
     // 2. إضافة طبقة أساس (TileLayer)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-    console.log('Base tile layer added');
 
     // --- بداية مكتبة الرموز والأنماط ---
     const symbolLibrary = {
@@ -39,8 +46,9 @@ document.addEventListener('DOMContentLoaded', function() {
             styleSettings = { symbol: 'pin', color: '#CCCCCC', size: 18 };
         }
         if (styleSettings.type === 'text') {
-            const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${styleSettings.color || 'black'}; background-color:transparent; border:none; padding:0px; text-align:center; white-space: nowrap;">${styleSettings.content || '?'}</div>`;
-            let iconWidth = (styleSettings.size || 16) * (String(styleSettings.content || '?').length * 0.6) + 8;
+// --- داخل دالة createFeatureIcon، داخل if (styleSettings.type === 'text') ---
+
+const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${styleSettings.color || 'black'}; background-color:transparent; border:none; padding:0px; text-align:center; white-space: nowrap;">${styleSettings.content || '?'}</div>`;            let iconWidth = (styleSettings.size || 16) * (String(styleSettings.content || '?').length * 0.6) + 8;
             if (String(styleSettings.content).includes('🚦') || String(styleSettings.content).includes('🛑') || String(styleSettings.content).includes('⚠️') || String(styleSettings.content).includes('⛔') || String(styleSettings.content).includes('🅿️')) iconWidth = (styleSettings.size || 16) + 8;
             let iconHeight = (styleSettings.size || 16) + 8;
             return L.divIcon({
@@ -56,10 +64,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!symbol || symbol.type !== 'svg') {
             return createFeatureIcon({ symbol: 'pin', color: styleSettings.color || '#CCCCCC', size: styleSettings.size || 18 });
         }
+
         const color = styleSettings.color || symbol.defaultColor;
         const size = styleSettings.size || symbol.defaultSize;
         const path = styleSettings.path || symbol.path;
         const viewBox = styleSettings.viewBox || symbol.viewBox;
+
         const svgHtml = `<svg width="${size}" height="${size}" viewBox="${viewBox}" fill="${color}" xmlns="http://www.w3.org/2000/svg"><path d="${path}"/></svg>`;
         return L.divIcon({
             html: svgHtml,
@@ -69,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const detailedStyles = { // ... (كل كائن detailedStyles الخاص بك يبقى كما هو هنا) ...
+    const detailedStyles = {
         "الصحة والمجال الاجتماعي": {
             displayName: "الصحة والمجال الاجتماعي",
             subcategories: {
@@ -120,10 +130,10 @@ document.addEventListener('DOMContentLoaded', function() {
             subcategories: {
                 "أضواء مرور": { displayName: "أضواء مرور", style: { type: 'text', content: '🚦', size: 18 } },
                 "علامة توقف": { displayName: "علامة توقف", style: { type: 'text', content: '🛑', size: 14, color: 'red' } },
-                "علامة إلزامية": { displayName: "علامة إلزامية", style: { type: 'text', content: '➡️', size: 10, color: 'blue' } }, // غيرت اللون ليكون مرئيًا
-                "علامة تحديد السرعة": { displayName: "علامة تحديد السرعة", style: { type: 'text', content: '⁶⁰', size: 14, color: 'black'} }, // أزلت الخلفية
-                "علامة تحذير": { displayName: "علامة تحذير", style: { type: 'text', content: '⚠️', size: 14, color: 'black' } }, // أزلت الخلفية
-                "علامة منع": { displayName: "علامة منع", style: { type: 'text', content: '⛔', size: 14, color: 'red' } }, // أزلت الخلفية (الرمز أحمر)
+                "علامة إلزامية": { displayName: "علامة إلزامية", style: { type: 'text', content: '➡️', size: 10, color: 'white' } },
+                "علامة تحديد السرعة": { displayName: "علامة تحديد السرعة", style: { type: 'text', content: '⁶⁰', size: 14, color: 'black', backgroundColor: 'white', borderColor: 'red', borderRadius: '60%'} },
+                "علامة تحذير": { displayName: "علامة تحذير", style: { type: 'text', content: '⚠️', size: 14, color: 'black' } },
+                "علامة منع": { displayName: "علامة منع", style: { type: 'text', content: '⛔', size: 14, color: 'white' } },
                 "لوحة تشوير مركبة": { displayName: "لوحة تشوير مركبة", style: { symbol: 'square', color: '#4682B4', size: 16 } },
                 "_default_sub_style": { displayName: "(غير محدد)", style: { symbol: 'pin', color: '#6495ED', size: 16 } }
             },
@@ -236,9 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
             defaultPointStyle: { symbol: 'pin', color: '#7f7f7f', size: 16 },
             defaultLinePolyStyle: { color: "#999999", weight: 1.5, dashArray: '3,3', opacity: 0.6 }
         }
-    }; // --- نهاية detailedStyles ---
-
-    // --- (باقي الدوال: Object.keys(detailedStyles).forEach, getLayerNameFromProperties, createPopupContent) ---
+    };
     Object.keys(detailedStyles).forEach(mainLayerKey => {
         const layerConf = detailedStyles[mainLayerKey];
         if (!layerConf.subcategories) layerConf.subcategories = {};
@@ -335,19 +343,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         return content;
-    } // --- نهاية createPopupContent ---
+    }
 
     const createdLayers = {};
     const layerControlEntries = {};
 
-    // --- تحميل ومعالجة GeoJSON ---
     fetch('Attaouia_GeoData.geojson')
         .then(response => {
             if (!response.ok) throw new Error(`Network error: ${response.status} ${response.statusText}`);
             return response.json();
         })
         .then(data => {
-            console.log('GeoJSON data loaded successfully');
             if (!data.features || !Array.isArray(data.features)) throw new Error("Invalid GeoJSON format.");
 
             let unclassifiedCount = 0;
@@ -479,9 +485,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         geoJsonLayerGroup.addTo(map);
                     }
                 }
-            } // نهاية حلقة for (const mainLayerName in featuresByMainLayer)
+            }
 
-            // --- إضافة عناصر التحكم إلى الواجهة ---
             const layersControlContainer = document.getElementById('layers-control-container');
             const leftControlsArea = document.getElementById('left-controls-area');
 
@@ -490,17 +495,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     collapsed: false,
                 });
                 layersControl.addTo(map);
+
                 const layersControlElement = layersControl.getContainer();
                 if (layersControlElement) {
                     layersControlContainer.appendChild(layersControlElement);
                 }
-                styleLayerControl(); // لتطبيق الأنماط على متحكم الطبقات المضاف
-                console.log('Layers control added to sidebar');
+                styleLayerControl();
             }
 
             if (leftControlsArea) {
-                const zoomControl = L.control.zoom({ position: 'topleft' }); // الموضع هنا مجرد إعداد افتراضي، سيتم نقله
-                zoomControl.addTo(map); // يجب إضافته للخريطة أولاً
+                const zoomControl = L.control.zoom({ position: 'topleft' });
+                zoomControl.addTo(map);
                 const zoomElement = zoomControl.getContainer();
                 if (zoomElement) {
                     if (leftControlsArea.firstChild) {
@@ -508,273 +513,374 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         leftControlsArea.appendChild(zoomElement);
                     }
-                    console.log('Zoom control moved to leftControlsArea');
                 }
-                updateCustomLegend(leftControlsArea); // استدعاء لإنشاء/تحديث المفتاح
+                updateCustomLegend(leftControlsArea);
             }
 
-            // زر إخراج البيانات (مثال، يمكنك تعديله أو إزالته إذا لم يكن مستخدمًا)
-            // const exportDataButton = document.getElementById('export-data-btn');
-            // if (exportDataButton) {
-            //     exportDataButton.addEventListener('click', () => {
-            //         alert('سيتم تنفيذ وظيفة إخراج البيانات هنا!');
-            //     });
-            // }
-
-            // =============================================================
-            // == كود إعداد زر إخراج الخريطة إلى PDF ==
-            // =============================================================
-            console.log('PDF Export Setup: Attempting to set up *after* GeoJSON loaded and UI elements *should be* created.');
-            const exportPdfBtn = document.getElementById('exportPdfButton'); // استخدام exportPdfBtn لتجنب التضارب
-            const mapDomElementForPdf = document.getElementById('map'); // عنصر الخريطة
-            const legendDomElementForPdf = document.getElementById('custom-legend'); // عنصر المفتاح
-
-            console.log('PDF Export Setup (after GeoJSON & UI creation attempt):');
-            console.log('exportPdfBtn:', exportPdfBtn);
-            console.log('mapDomElementForPdf:', mapDomElementForPdf);
-            console.log('legendDomElementForPdf:', legendDomElementForPdf);
-
-            if (exportPdfBtn && mapDomElementForPdf && legendDomElementForPdf) {
-                console.log('PDF Export Setup: All elements found. Adding click listener to exportPdfBtn.');
-                exportPdfBtn.addEventListener('click', function () {
-                    console.log('PDF Export Action: exportPdfBtn CLICKED!');
-
-                    exportPdfBtn.disabled = true;
-                    exportPdfBtn.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-2 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                        جارٍ الإعداد...
-                    `;
-                    console.log('PDF Export Action: Button disabled, innerHTML changed.');
-
-                    setTimeout(() => {
-                        console.log('PDF Export Action: Inside setTimeout for canvas capture.');
-
-                        const canvasOptions = {
-                            useCORS: true,
-                            allowTaint: true,
-                            logging: false,
-                            scale: window.devicePixelRatio > 1 ? 2 : 1,
-                            onclone: (clonedDocument) => {
-                                const clonedExportButton = clonedDocument.getElementById('exportPdfButton');
-                                if (clonedExportButton) clonedExportButton.style.display = 'none';
-                                // يمكنك إخفاء عناصر التحكم في Leaflet هنا أيضًا إذا أردت من النسخة المستنسخة
-                                const leafletControls = clonedDocument.querySelectorAll('.leaflet-control-container .leaflet-control');
-                                leafletControls.forEach(control => control.style.display = 'none');
-                            }
-                        };
-
-                        console.log('PDF Export Action: Checking window.jspdf and html2canvas before Promise.all:');
-                        console.log('PDF Export Action: typeof html2canvas:', typeof html2canvas);
-                        console.log('PDF Export Action: window.jspdf object:', window.jspdf);
-                        if (window.jspdf) {
-                            console.log('PDF Export Action: typeof window.jspdf.jsPDF:', typeof window.jspdf.jsPDF);
-                        }
-
-                        if (typeof html2canvas !== 'function' || !window.jspdf || typeof window.jspdf.jsPDF !== 'function') {
-                            console.error('PDF Export Action: html2canvas or jsPDF is not loaded correctly!');
-                            alert('خطأ: لم يتم تحميل مكتبات PDF بشكل صحيح. يرجى التحقق من الكونسول.');
-                            exportPdfBtn.disabled = false;
-                            exportPdfBtn.innerHTML = `... PDF ...`; // استعادة الزر
-                            return;
-                        }
-
-
-                        Promise.all([
-                            html2canvas(mapDomElementForPdf, canvasOptions),
-                            html2canvas(legendDomElementForPdf, canvasOptions)
-                        ]).then(function ([mapCanvas, legendCanvas]) {
-                            console.log('PDF Export Action: html2canvas promises resolved successfully.');
-                            
-                            const mapImgData = mapCanvas.toDataURL('image/png');
-                            const legendImgData = legendCanvas.toDataURL('image/png');
-
-                            const { jsPDF } = window.jspdf;
-                            const pdf = new jsPDF({
-                                orientation: 'landscape',
-                                unit: 'mm',
-                                format: 'a4'
-                            });
-
-                            const pdfWidth = pdf.internal.pageSize.getWidth();
-                            const pdfHeight = pdf.internal.pageSize.getHeight();
-                            const marginVal = 10; // استخدام marginVal لتجنب التضارب مع margin كخاصية CSS
-
-                            const mapAspectRatio = mapCanvas.width / mapCanvas.height;
-                            let mapPdfWidth = pdfWidth - (2 * marginVal);
-                            let mapPdfHeight = mapPdfWidth / mapAspectRatio;
-
-                            if (mapPdfHeight > pdfHeight * 0.75) { // مساحة أكبر قليلاً للخريطة
-                                mapPdfHeight = pdfHeight * 0.75;
-                                mapPdfWidth = mapPdfHeight * mapAspectRatio;
-                            }
-                            pdf.addImage(mapImgData, 'PNG', marginVal, marginVal, mapPdfWidth, mapPdfHeight);
-
-                            const legendAspectRatio = legendCanvas.width / legendCanvas.height;
-                            let legendPdfHeight = pdfHeight - mapPdfHeight - (3 * marginVal);
-                            if (legendPdfHeight > 60) legendPdfHeight = 60; // يمكن زيادة ارتفاع المفتاح قليلاً
-                            if (legendPdfHeight < 10 && legendCanvas.height > 0) legendPdfHeight = 10;
-                            
-                            let legendPdfWidth = legendPdfHeight * legendAspectRatio;
-                            if (legendPdfWidth > pdfWidth - (2 * marginVal)) {
-                                legendPdfWidth = pdfWidth - (2 * marginVal);
-                                legendPdfHeight = legendPdfWidth / legendAspectRatio;
-                                if (legendPdfHeight < 10 && legendCanvas.height > 0) legendPdfHeight = 10; // إعادة التحقق
-                            }
-
-                            pdf.addImage(legendImgData, 'PNG', marginVal, marginVal + mapPdfHeight + marginVal, legendPdfWidth, legendPdfHeight);
-
-                            pdf.setFontSize(10);
-                            pdf.text('خريطة مُصدَّرة', marginVal, marginVal - 3);
-                            pdf.text(new Date().toLocaleDateString('ar-EG'), pdfWidth - marginVal, marginVal - 3, { align: 'right' });
-
-                            pdf.save('خريطتي.pdf');
-                            console.log('PDF Export Action: PDF saved.');
-
-                            exportPdfBtn.disabled = false;
-                            exportPdfBtn.innerHTML = `
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                PDF
-                            `;
-                            console.log('PDF Export Action: Button re-enabled.');
-
-                        }).catch(function(error) {
-                            console.error('PDF Export Action: Error in Promise.all or .then block:', error);
-                            alert('حدث خطأ أثناء إنشاء PDF. يرجى مراجعة الكونسول.');
-                            exportPdfBtn.disabled = false;
-                            exportPdfBtn.innerHTML = `
-                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                 PDF
-                            `;
-                        });
-                    }, 100);
+            const exportButton = document.getElementById('export-data-btn');
+            if (exportButton) {
+                exportButton.addEventListener('click', () => {
+                    alert('سيتم تنفيذ وظيفة إخراج البيانات هنا!');
                 });
-            } else {
-                console.error('PDF Export Setup (after GeoJSON): One or more required elements not found for PDF export functionality!');
-                if (!exportPdfBtn) console.error('PDF Export Setup: exportPdfButton (#exportPdfButton) not found.');
-                if (!mapDomElementForPdf) console.error('PDF Export Setup: mapDomElementForPdf (#map) not found.');
-                if (!legendDomElementForPdf) console.error('PDF Export Setup: legendDomElementForPdf (#custom-legend) not found. Check if updateCustomLegend was called and succeeded, and if the ID is correct.');
             }
-            // --- نهاية كود إعداد زر إخراج PDF ---
-
-        }) // نهاية .then(data => { ... })
+        })
         .catch(error => {
-            console.error('Main Fetch Error: Error loading/processing GeoJSON:', error);
+            console.error('Error loading/processing GeoJSON:', error);
             const mapDiv = document.getElementById('map');
             if (mapDiv) {
                 mapDiv.innerHTML = `<div style="padding:20px;color:red;text-align:center;"><h3>خطأ في تحميل البيانات: ${error.message}</h3><p>يرجى التحقق من وحدة التحكم للمزيد من التفاصيل.</p></div>`;
             }
-        }); // نهاية .catch() الخاصة بـ fetch
+        });
 
+    function updateCustomLegend(containerElement) {
+        const legendContainerId = 'custom-legend';
+        let legendDiv = document.getElementById(legendContainerId);
+
+        if (!legendDiv) {
+            legendDiv = document.createElement('div');
+            legendDiv.id = legendContainerId;
+            if (containerElement) {
+                containerElement.appendChild(legendDiv);
+            } else {
+                console.warn("Legend container not provided, legend may not be displayed correctly.");
+                document.body.appendChild(legendDiv);
+            }
+        }
+        legendDiv.innerHTML = '<h4>وسيلة الإيضاح</h4>';
+
+        const orderedLayerNames = Object.keys(detailedStyles);
+
+        orderedLayerNames.forEach(mainLayerName => {
+            if (detailedStyles.hasOwnProperty(mainLayerName) && mainLayerName !== "طبقة غير مصنفة") {
+                const layerConfig = detailedStyles[mainLayerName];
+
+                const mainLayerDiv = document.createElement('div');
+                mainLayerDiv.innerHTML = `<strong>${layerConfig.displayName || mainLayerName}</strong>`;
+                legendDiv.appendChild(mainLayerDiv);
+
+                if (layerConfig.subcategories && Object.keys(layerConfig.subcategories).length > 0) {
+                    Object.keys(layerConfig.subcategories).forEach(subcatName => {
+                        if (subcatName.startsWith("_default")) return;
+
+                        const subcatConfig = layerConfig.subcategories[subcatName];
+                        if (!subcatConfig) return;
+
+                        const itemDiv = document.createElement('div');
+                        itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
+                        let iconHtml = '';
+
+                        if (subcatConfig.style) {
+                            iconHtml = createFeatureIcon(subcatConfig.style).options.html;
+                        } else if (subcatConfig.styleConfig) {
+                            const sc = subcatConfig.styleConfig;
+                            const isLine = mainLayerName === "شبكة الطرق" ||
+                                           (sc.hasOwnProperty('weight') && (!sc.hasOwnProperty('fillColor') || sc.fillColor === 'transparent' || sc.fillOpacity === 0));
+
+                            if (isLine) {
+                                if (sc.dashArray) {
+                                    iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, sc.weight || 2)}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
+                                } else {
+                                    iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
+                                }
+                            } else { // Polygon
+                                iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${sc.fillOpacity || 1};"></span>`;
+                            }
+                        }
+                        itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span>${subcatConfig.displayName || subcatName}</span>`;
+                        legendDiv.appendChild(itemDiv);
+                    });
+                } else if (layerConfig.defaultPointStyle || layerConfig.defaultLinePolyStyle) {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
+                    let iconHtml = '';
+                    if (layerConfig.defaultPointStyle) {
+                         iconHtml = createFeatureIcon(layerConfig.defaultPointStyle).options.html;
+                    } else if (layerConfig.defaultLinePolyStyle) {
+                        const sc = layerConfig.defaultLinePolyStyle;
+                         const isLine = mainLayerName === "شبكة الطرق" ||
+                                       (sc.hasOwnProperty('weight') && (!sc.hasOwnProperty('fillColor') || sc.fillColor === 'transparent' || sc.fillOpacity === 0));
+                        if (isLine) {
+                             if (sc.dashArray) {
+                                iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, sc.weight || 2)}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
+                            } else {
+                                 iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
+                            }
+                        } else { // Polygon
+                             iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${sc.fillOpacity || 1};"></span>`;
+                        }
+                    }
+                    itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span><small>(نمط افتراضي للطبقة)</small></span>`;
+                    legendDiv.appendChild(itemDiv);
+                }
+            }
+        });
+    }
+
+    function styleLayerControl() {
+        const layerControlElement = document.querySelector('#layers-control-container .leaflet-control-layers');
+        if (layerControlElement) {
+            const layersListContainer = layerControlElement.querySelector('.leaflet-control-layers-list');
+            if (layersListContainer && !layerControlElement.querySelector('.leaflet-control-layers-title')) {
+                const titleElement = document.createElement('div');
+                titleElement.className = 'leaflet-control-layers-title';
+                titleElement.innerHTML = '<strong>الطبقات الرئيسية</strong>';
+                layerControlElement.insertBefore(titleElement, layersListContainer);
+            }
+        }
+    }
+document.addEventListener('DOMContentLoaded', function () {
+    const exportButton = document.getElementById('exportPdfButton');
+    const mapElement = document.getElementById('map'); // <-- تأكد أن هذا هو الـ ID الصحيح لـ div الخريطة
+    const legendElement = document.getElementById('custom-legend'); // <-- تأكد أن هذا هو الـ ID الصحيح لـ div المفتاح
+
+    if (exportButton && mapElement && legendElement) {
+        exportButton.addEventListener('click', function () {
+            // رسالة للمستخدم (اختياري)
+            exportButton.disabled = true;
+            exportButton.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-2 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                جارٍ الإعداد...
+            `;
+
+            // إخفاء عناصر التحكم في الخريطة مؤقتًا إذا أردت (مثل أزرار التكبير/التصغير)
+            // مثال: const zoomControl = document.querySelector('.leaflet-control-zoom');
+            // if (zoomControl) zoomControl.style.display = 'none';
+
+
+            // مهلة صغيرة للسماح لأي تحديثات في الواجهة بالحدوث
+            setTimeout(() => {
+                // الخيارات لـ html2canvas (يمكنك تعديلها)
+                const canvasOptions = {
+                    useCORS: true, // مهم إذا كانت لديك صور من نطاقات أخرى (مثل مربعات الخرائط)
+                    allowTaint: true,
+                    logging: false, // تعطيل تسجيلات html2canvas في الكونسول
+                    scale: window.devicePixelRatio > 1 ? 2 : 1, // تحسين الجودة على شاشات Retina
+                    onclone: (document) => {
+                        // يمكنك إجراء تعديلات على الـ DOM المستنسخ قبل التقاط الصورة
+                        // مثلاً، إخفاء عناصر معينة فقط أثناء الالتقاط
+                        // const clonedExportButton = document.getElementById('exportPdfButton');
+                        // if (clonedExportButton) clonedExportButton.style.display = 'none';
+                    }
+                };
+
+                Promise.all([
+                    html2canvas(mapElement, canvasOptions),
+                    html2canvas(legendElement, canvasOptions)
+                ]).then(function ([mapCanvas, legendCanvas]) {
+                    // إعادة إظهار عناصر التحكم في الخريطة إذا تم إخفاؤها
+                    // if (zoomControl) zoomControl.style.display = 'block';
+
+                    const mapImgData = mapCanvas.toDataURL('image/png');
+                    const legendImgData = legendCanvas.toDataURL('image/png');
+
+                    // استخدام jsPDF (تأكد أن window.jspdf.jsPDF موجود)
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'landscape', // أو 'portrait'
+                        unit: 'mm',
+                        format: 'a4' // أو أبعاد مخصصة
+                    });
+
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = pdf.internal.pageSize.getHeight();
+                    const margin = 10; // هامش 10 مم
+
+                    // أبعاد الخريطة في الـ PDF
+                    // حاول الحفاظ على نسبة العرض إلى الارتفاع الأصلية للخريطة
+                    const mapAspectRatio = mapCanvas.width / mapCanvas.height;
+                    let mapPdfWidth = pdfWidth - (2 * margin);
+                    let mapPdfHeight = mapPdfWidth / mapAspectRatio;
+
+                    if (mapPdfHeight > pdfHeight * 0.7) { // إذا كانت الخريطة طويلة جدًا
+                        mapPdfHeight = pdfHeight * 0.7;
+                        mapPdfWidth = mapPdfHeight * mapAspectRatio;
+                    }
+
+                    // إضافة صورة الخريطة
+                    pdf.addImage(mapImgData, 'PNG', margin, margin, mapPdfWidth, mapPdfHeight);
+
+                    // أبعاد المفتاح في الـ PDF
+                    const legendAspectRatio = legendCanvas.width / legendCanvas.height;
+                    let legendPdfHeight = pdfHeight - mapPdfHeight - (3 * margin); // مساحة متبقية للمفتاح
+                    if (legendPdfHeight > 50) legendPdfHeight = 50; // حد أقصى لارتفاع المفتاح
+                    let legendPdfWidth = legendPdfHeight * legendAspectRatio;
+                    if (legendPdfWidth > pdfWidth - (2 * margin)) { // إذا كان المفتاح عريضًا جدًا
+                        legendPdfWidth = pdfWidth - (2 * margin);
+                        legendPdfHeight = legendPdfWidth / legendAspectRatio;
+                    }
+
+
+                    // إضافة صورة المفتاح أسفل الخريطة
+                    pdf.addImage(legendImgData, 'PNG', margin, margin + mapPdfHeight + margin, legendPdfWidth, legendPdfHeight);
+
+                    // إضافة عنوان أو تاريخ (اختياري)
+                    pdf.setFontSize(10);
+                    pdf.text('خريطة مُصدَّرة', margin, margin - 3);
+                    pdf.text(new Date().toLocaleDateString('ar-EG'), pdfWidth - margin, margin - 3, { align: 'right' });
+
+
+                    pdf.save('خريطتي.pdf');
+
+                    // إعادة الزر إلى حالته الطبيعية
+                    exportButton.disabled = false;
+                    exportButton.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        PDF
+                    `;
+
+                }).catch(function(error) {
+                    console.error('خطأ أثناء إنشاء PDF:', error);
+                    alert('حدث خطأ أثناء محاولة إخراج الخريطة. يرجى مراجعة الكونسول.');
+                    // إعادة الزر إلى حالته الطبيعية
+                    exportButton.disabled = false;
+                    exportButton.innerHTML = `
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                         PDF
+                    `;
+                });
+            }, 100); // مهلة للسماح بالتحديث
+        });
+    } else {
+        if (!exportButton) console.error('لم يتم العثور على زر الإخراج exportPdfButton');
+        if (!mapElement) console.error('لم يتم العثور على عنصر الخريطة map');
+        if (!legendElement) console.error('لم يتم العثور على عنصر المفتاح custom-legend');
+    }
+});
+// =============================================================
+// == كود إخراج الخريطة إلى PDF (النسخة الوحيدة مع console.log) ==
+// =============================================================
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('PDF Export Setup: DOMContentLoaded fired.');
+    const exportButton = document.getElementById('exportPdfButton');
+    const mapElement = document.getElementById('map');
+    const legendElement = document.getElementById('custom-legend');
+
+    console.log('PDF Export Setup: Attempting to find elements:');
+    console.log('PDF Export Setup: exportButton:', exportButton);
+    console.log('PDF Export Setup: mapElement:', mapElement);
+    console.log('PDF Export Setup: legendElement:', legendElement);
+
+    if (exportButton && mapElement && legendElement) {
+        console.log('PDF Export Setup: All elements found. Adding click listener.');
+        exportButton.addEventListener('click', function () {
+            console.log('PDF Export Action: Button CLICKED!');
+            // ... (الكود الكامل لـ html2canvas و jsPDF مع باقي console.log) ...
+        });
+    } else {
+        console.error('PDF Export Setup: One or more required elements not found!');
+        // ... (رسائل الخطأ التفصيلية) ...
+    }
+});
     // =============================================================
     // == كود النافذة المنبثقة لـ "اتصل بنا" (Contact Us Modal) ==
     // =============================================================
-    var contactModal = document.getElementById("contactModal"); // إعادة تعريف للتأكيد
-    var btnContact = document.getElementById("contactBtnHeader");
-    var spanCloseContact = contactModal ? contactModal.querySelector(".close-button") : null; // استهداف زر الإغلاق داخل نافذة اتصل بنا
+    var modal = document.getElementById("contactModal");
+    var btnContact = document.getElementById("contactBtnHeader"); // تأكد أن هذا الـ ID يطابق زر "اتصل بنا" في HTML
+    var spanClose = document.getElementsByClassName("close-button")[0]; // يفترض وجود زر إغلاق واحد بهذا الكلاس
 
-    if (btnContact && contactModal) {
+    // التحقق من وجود العناصر قبل إضافة المستمعين
+    if (btnContact && modal) {
+        // عندما يضغط المستخدم على الزر "اتصل بنا"، افتح النافذة
         btnContact.onclick = function() {
-            console.log('Contact Us button clicked');
-            contactModal.style.display = "block";
+            modal.style.display = "block";
         }
-    } else {
-        if(!btnContact) console.error("Contact button 'contactBtnHeader' not found");
-        if(!contactModal) console.error("Contact modal 'contactModal' not found");
     }
 
-    if (spanCloseContact && contactModal) {
-        spanCloseContact.onclick = function() {
-            console.log('Contact Us modal close button clicked');
-            contactModal.style.display = "none";
+    if (spanClose && modal) {
+        // عندما يضغط المستخدم على <span> (x)، أغلق النافذة
+        spanClose.onclick = function() {
+            modal.style.display = "none";
         }
-    } else {
-        if(!spanCloseContact) console.error("Close button for contact modal not found");
     }
-
-    // =============================================================
-    // == كود النافذة المنبثقة للتعليقات (Comments Modal) ==
-    // =============================================================
-    var showCommentsBtn = document.getElementById('showCommentsBtn');
-    var commentsModal = document.getElementById('commentsModal');
-    var closeCommentsModalBtn = document.getElementById('closeCommentsModalBtn');
-    var commentForm = document.getElementById('commentForm');
-    var commentsListDiv = document.getElementById('comments-list');
-
-    if (showCommentsBtn && commentsModal && closeCommentsModalBtn) {
-        showCommentsBtn.onclick = function() {
-            console.log('Show Comments button clicked');
-            commentsModal.style.display = 'block';
+    // عندما يضغط المستخدم في أي مكان خارج محتوى النافذة، أغلقها
+    window.onclick = function(event) {
+        if (modal && event.target == modal) { // إذا كان الهدف هو الخلفية الرمادية للنافذة
+            modal.style.display = "none";
         }
-        closeCommentsModalBtn.onclick = function() {
-            console.log('Close Comments modal button clicked');
-            commentsModal.style.display = 'none';
-        }
-    } else {
-        if (!showCommentsBtn) console.error("Button 'showCommentsBtn' not found.");
-        if (!commentsModal) console.error("Modal 'commentsModal' not found.");
-        if (!closeCommentsModalBtn) console.error("Button 'closeCommentsModalBtn' not found.");
     }
-
-    // إغلاق النوافذ عند النقر خارج محتواها (دمج المستمع)
-    window.addEventListener('click', function(event) {
-        if (contactModal && event.target == contactModal) {
-            console.log('Clicked outside Contact Us modal');
-            contactModal.style.display = "none";
-        }
-        if (commentsModal && event.target == commentsModal) {
-            console.log('Clicked outside Comments modal');
+    // --- وظيفة النافذة المنبثقة للتعليقات ---
+if (showCommentsBtn && commentsModal && closeCommentsModalBtn) {
+    showCommentsBtn.onclick = function() {
+        commentsModal.style.display = 'block';
+    }
+    closeCommentsModalBtn.onclick = function() {
+        commentsModal.style.display = 'none';
+    }
+    // إغلاق نافذة التعليقات عند النقر خارج محتواها
+    window.addEventListener('click', function(event) { // استخدم addEventListener لتجنب الكتابة فوق window.onclick السابق
+        if (event.target == commentsModal) {
             commentsModal.style.display = 'none';
         }
     });
+} else {
+    if (!showCommentsBtn) console.error("Button 'showCommentsBtn' not found.");
+    if (!commentsModal) console.error("Modal 'commentsModal' not found.");
+    if (!closeCommentsModalBtn) console.error("Button 'closeCommentsModalBtn' not found.");
+}
 
-    // التعامل مع إرسال نموذج التعليق
-    if (commentForm && commentsListDiv) {
-        commentForm.onsubmit = function(event) {
-            event.preventDefault();
-            console.log('Comment form submitted');
-            // ... (باقي كود إرسال التعليق) ...
-             var commenterName = document.getElementById('commenterName').value.trim();
-            var commentText = document.getElementById('commentText').value.trim();
+// (اختياري) التعامل مع إرسال نموذج التعليق
+if (commentForm && commentsListDiv) {
+    commentForm.onsubmit = function(event) {
+        event.preventDefault(); // منع الإرسال التقليدي للنموذج
 
-            if (commentText === "") {
-                alert("الرجاء كتابة تعليق.");
-                return;
-            }
-            var newComment = document.createElement('div');
-            newComment.style.borderBottom = "1px solid #eee";
-            newComment.style.paddingBottom = "10px";
-            newComment.style.marginBottom = "10px";
-            var nameStrong = document.createElement('strong');
-            nameStrong.textContent = commenterName ? commenterName : "مجهول";
-            newComment.appendChild(nameStrong);
-            var textP = document.createElement('p');
-            textP.textContent = commentText;
-            textP.style.margin = "5px 0 0 0";
-            newComment.appendChild(textP);
-            var paragraphsInList = commentsListDiv.getElementsByTagName('p');
-            for (var i = 0; i < paragraphsInList.length; i++) {
-                var pElement = paragraphsInList[i];
-                var textContent = pElement.textContent || pElement.innerText;
-                if (textContent.includes("لا توجد تعليقات حاليًا")) {
-                    if (pElement.parentNode === commentsListDiv) {
-                        commentsListDiv.removeChild(pElement);
-                        console.log("'No comments' paragraph containing the specific text removed.");
-                        break; 
-                    }
+        var commenterName = document.getElementById('commenterName').value.trim();
+        var commentText = document.getElementById('commentText').value.trim();
+
+        if (commentText === "") {
+            alert("الرجاء كتابة تعليق.");
+            return;
+        }
+
+        // إنشاء عنصر التعليق الجديد
+        var newComment = document.createElement('div');
+        newComment.style.borderBottom = "1px solid #eee";
+        newComment.style.paddingBottom = "10px";
+        newComment.style.marginBottom = "10px";
+
+        var nameStrong = document.createElement('strong');
+        nameStrong.textContent = commenterName ? commenterName : "مجهول";
+        newComment.appendChild(nameStrong);
+
+        var textP = document.createElement('p');
+        textP.textContent = commentText;
+        textP.style.margin = "5px 0 0 0";
+        newComment.appendChild(textP);
+
+           // إزالة رسالة "لا توجد تعليقات" إذا كانت موجودة
+        // الطريقة الأولى: البحث عن الفقرة التي تحتوي على النص المحدد
+        var paragraphsInList = commentsListDiv.getElementsByTagName('p');
+        for (var i = 0; i < paragraphsInList.length; i++) {
+            var pElement = paragraphsInList[i];
+            // نتحقق مما إذا كان النص داخل الفقرة أو داخل عنصر <em> بداخلها
+            var textContent = pElement.textContent || pElement.innerText;
+            if (textContent.includes("لا توجد تعليقات حاليًا")) {
+                if (pElement.parentNode === commentsListDiv) { // تأكد أنه ابن مباشر
+                    commentsListDiv.removeChild(pElement);
+                    console.log("'No comments' paragraph containing the specific text removed.");
+                    break; // نخرج من الحلقة بعد إزالة العنصر
                 }
             }
-            commentsListDiv.appendChild(newComment);
-            document.getElementById('commenterName').value = "";
-            document.getElementById('commentText').value = "";
-            alert("شكراً على تعليقك!");
-        };
-    } else {
-         if (!commentForm) console.error("Comment form 'commentForm' not found.");
-         if (!commentsListDiv) console.error("Comments list div 'comments-list' not found.");
-    }
+        }
+
+        // الطريقة الثانية (إذا كنت متأكدًا من أن العنصر <p> هو الوحيد أو الأول):
+        // هذا الكود سيعمل إذا كان <p><em>...</em></p> هو العنصر الوحيد أو الأول
+        // var initialMessageParagraph = commentsListDiv.querySelector('#comments-list > p:first-child > em');
+        // if (initialMessageParagraph && initialMessageParagraph.parentElement.parentNode === commentsListDiv) {
+        //     commentsListDiv.removeChild(initialMessageParagraph.parentElement);
+        //     console.log("Initial 'no comments' message (paragraph) removed.");
+        // }
+        commentsListDiv.appendChild(newComment);
+
+        // مسح النموذج
+        document.getElementById('commenterName').value = "";
+        document.getElementById('commentText').value = "";
+
+        alert("شكراً على تعليقك!");
+        // يمكنك هنا إضافة كود لإرسال التعليق إلى خادم إذا أردت حفظه بشكل دائم
+    };
+}
     // =============================================================
-    // == نهاية كود النوافذ المنبثقة ==
+    // == نهاية كود النافذة المنبثقة ==
     // =============================================================
 
-    console.log('Main DOMContentLoaded Fired - Script End');
-}); // نهاية مستمع DOMContentLoaded الرئيسي
+}); // نهاية مستمع DOMContentLoaded
