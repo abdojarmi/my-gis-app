@@ -128,11 +128,11 @@ document.addEventListener('DOMContentLoaded', function() {
             displayName: "التشوير الطرقي",
             subcategories: {
                 "أضواء مرور": { displayName: "أضواء مرور", style: { type: 'text', content: '🚦', size: 18 } },
-                "علامة توقف": { displayName: "علامة توقف", style: { type: 'text', content: '🛑', size: 16, color: 'red', backgroundColor: 'white', borderColor: 'red' } },
-                "علامة إلزامية": { displayName: "علامة إلزامية", style: { type: 'text', content: '➡️', size: 16, color: 'white', backgroundColor: 'blue', borderColor: 'blue' } },
-                "علامة تحديد السرعة": { displayName: "علامة تحديد السرعة", style: { type: 'text', content: '⁶⁰', size: 18, color: 'black', backgroundColor: 'white', borderColor: 'red', borderRadius: '50%'} },
-                "علامة تحذير": { displayName: "علامة تحذير", style: { type: 'text', content: '⚠️', size: 16, color: 'black', backgroundColor: 'yellow', borderColor: 'black' } },
-                "علامة منع": { displayName: "علامة منع", style: { type: 'text', content: '⛔', size: 16, color: 'white', backgroundColor: 'red', borderRadius: '50%' } },
+                "علامة توقف": { displayName: "علامة توقف", style: { type: 'text', content: '🛑', size: 14, color: 'red', backgroundColor: 'white', borderColor: 'red' } },
+                "علامة إلزامية": { displayName: "علامة إلزامية", style: { type: 'text', content: '➡️', size: 14, color: 'white', backgroundColor: 'blue', borderColor: 'blue' } },
+                "علامة تحديد السرعة": { displayName: "علامة تحديد السرعة", style: { type: 'text', content: '⁶⁰', size: 14, color: 'black', backgroundColor: 'white', borderColor: 'red', borderRadius: '50%'} },
+                "علامة تحذير": { displayName: "علامة تحذير", style: { type: 'text', content: '⚠️', size: 14, color: 'black', backgroundColor: 'yellow', borderColor: 'black' } },
+                "علامة منع": { displayName: "علامة منع", style: { type: 'text', content: '⛔', size: 14, color: 'white', backgroundColor: 'red', borderRadius: '50%' } },
                 "لوحة تشوير مركبة": { displayName: "لوحة تشوير مركبة", style: { symbol: 'square', color: '#4682B4', size: 16 } },
                 "_default_sub_style": { displayName: "(غير محدد)", style: { symbol: 'pin', color: '#6495ED', size: 16 } }
             },
