@@ -746,6 +746,31 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!legendElement) console.error('لم يتم العثور على عنصر المفتاح custom-legend');
     }
 });
+        document.addEventListener('DOMContentLoaded', function () { // المستمع الخاص بإخراج PDF
+    console.log('PDF Export DOMContentLoaded fired.'); // تتبع أن هذا المستمع يعمل
+
+    const exportButton = document.getElementById('exportPdfButton');
+    const mapElement = document.getElementById('map');
+    const legendElement = document.getElementById('custom-legend'); // تأكد أن هذا الـ ID صحيح تمامًا
+
+    console.log('Attempting to find elements for PDF export:');
+    console.log('exportButton:', exportButton);
+    console.log('mapElement:', mapElement);
+    console.log('legendElement:', legendElement);
+
+    if (exportButton && mapElement && legendElement) {
+        console.log('All elements found for PDF export. Adding click listener.');
+        exportButton.addEventListener('click', function () {
+            console.log('PDF Export button CLICKED!'); // هل ترى هذا عند النقر؟
+            // ... (باقي الكود)
+        });
+    } else {
+        console.error('PDF Export: One or more required elements not found!');
+        if (!exportButton) console.error('PDF Export: exportPdfButton not found.');
+        if (!mapElement) console.error('PDF Export: mapElement (#map) not found.');
+        if (!legendElement) console.error('PDF Export: legendElement (#custom-legend) not found.');
+    }
+});
     // =============================================================
     // == كود النافذة المنبثقة لـ "اتصل بنا" (Contact Us Modal) ==
     // =============================================================
