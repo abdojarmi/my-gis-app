@@ -631,6 +631,8 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
 // =============================================================
 // == كود إخراج الخريطة إلى PDF (النسخة المنقحة والموحدة) ==
 // =============================================================
+    const exportButton = document.getElementById('exportPdfButton');
+    const legendElement = document.getElementById('custom-legend');    
 if (exportButton && mapElement && legendElement) {
     console.log('PDF Export Setup: Elements found, adding listener.');
     exportButton.addEventListener('click', function () {
