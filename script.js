@@ -628,149 +628,191 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             }
         }
     }
-document.addEventListener('DOMContentLoaded', function () {
-    const exportButton = document.getElementById('exportPdfButton');
-    const mapElement = document.getElementById('map'); // <-- تأكد أن هذا هو الـ ID الصحيح لـ div الخريطة
-    const legendElement = document.getElementById('custom-legend'); // <-- تأكد أن هذا هو الـ ID الصحيح لـ div المفتاح
+// =============================================================
+// == كود إخراج الخريطة إلى PDF (النسخة المنقحة والموحدة) ==
+// =============================================================
+const exportButton = document.getElementById('exportPdfButton');
+const mapElement = document.getElementById('map');
+const legendElement = document.getElementById('custom-legend'); // تأكد من أن هذا العنصر موجود ويتم إنشاؤه
 
-    if (exportButton && mapElement && legendElement) {
-        exportButton.addEventListener('click', function () {
-            // رسالة للمستخدم (اختياري)
-            exportButton.disabled = true;
-            exportButton.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-2 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                جارٍ الإعداد...
-            `;
+if (exportButton && mapElement && legendElement) {
+    console.log('PDF Export Setup: Elements found, adding listener.');
+    exportButton.addEventListener('click', function () {
+        console.log('PDF Export Action: Button CLICKED!');
+        // التحقق من وجود المكتبات قبل المتابعة
+        if (typeof html2canvas === 'undefined') {
+            console.error('PDF Export Error: html2canvas library is not loaded!');
+            alert('خطأ: مكتبة html2canvas غير محملة. لا يمكن تصدير PDF.');
+            return;
+        }
+        if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+            console.error('PDF Export Error: jsPDF library is not loaded or not available under window.jspdf!');
+            alert('خطأ: مكتبة jsPDF غير محملة. لا يمكن تصدير PDF.');
+            return;
+        }
 
-            // إخفاء عناصر التحكم في الخريطة مؤقتًا إذا أردت (مثل أزرار التكبير/التصغير)
-            // مثال: const zoomControl = document.querySelector('.leaflet-control-zoom');
-            // if (zoomControl) zoomControl.style.display = 'none';
+        // رسالة للمستخدم وتغيير حالة الزر
+        exportButton.disabled = true;
+        const originalButtonHtml = exportButton.innerHTML; // حفظ محتوى الزر الأصلي
+        exportButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-2 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            جارٍ الإعداد...
+        `;
 
-
-            // مهلة صغيرة للسماح لأي تحديثات في الواجهة بالحدوث
-            setTimeout(() => {
-                // الخيارات لـ html2canvas (يمكنك تعديلها)
-                const canvasOptions = {
-                    useCORS: true, // مهم إذا كانت لديك صور من نطاقات أخرى (مثل مربعات الخرائط)
-                    allowTaint: true,
-                    logging: false, // تعطيل تسجيلات html2canvas في الكونسول
-                    scale: window.devicePixelRatio > 1 ? 2 : 1, // تحسين الجودة على شاشات Retina
-                    onclone: (document) => {
-                        // يمكنك إجراء تعديلات على الـ DOM المستنسخ قبل التقاط الصورة
-                        // مثلاً، إخفاء عناصر معينة فقط أثناء الالتقاط
-                        // const clonedExportButton = document.getElementById('exportPdfButton');
-                        // if (clonedExportButton) clonedExportButton.style.display = 'none';
-                    }
-                };
-
-                Promise.all([
-                    html2canvas(mapElement, canvasOptions),
-                    html2canvas(legendElement, canvasOptions)
-                ]).then(function ([mapCanvas, legendCanvas]) {
-                    // إعادة إظهار عناصر التحكم في الخريطة إذا تم إخفاؤها
-                    // if (zoomControl) zoomControl.style.display = 'block';
-
-                    const mapImgData = mapCanvas.toDataURL('image/png');
-                    const legendImgData = legendCanvas.toDataURL('image/png');
-
-                    // استخدام jsPDF (تأكد أن window.jspdf.jsPDF موجود)
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF({
-                        orientation: 'landscape', // أو 'portrait'
-                        unit: 'mm',
-                        format: 'a4' // أو أبعاد مخصصة
-                    });
-
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    const margin = 10; // هامش 10 مم
-
-                    // أبعاد الخريطة في الـ PDF
-                    // حاول الحفاظ على نسبة العرض إلى الارتفاع الأصلية للخريطة
-                    const mapAspectRatio = mapCanvas.width / mapCanvas.height;
-                    let mapPdfWidth = pdfWidth - (2 * margin);
-                    let mapPdfHeight = mapPdfWidth / mapAspectRatio;
-
-                    if (mapPdfHeight > pdfHeight * 0.7) { // إذا كانت الخريطة طويلة جدًا
-                        mapPdfHeight = pdfHeight * 0.7;
-                        mapPdfWidth = mapPdfHeight * mapAspectRatio;
-                    }
-
-                    // إضافة صورة الخريطة
-                    pdf.addImage(mapImgData, 'PNG', margin, margin, mapPdfWidth, mapPdfHeight);
-
-                    // أبعاد المفتاح في الـ PDF
-                    const legendAspectRatio = legendCanvas.width / legendCanvas.height;
-                    let legendPdfHeight = pdfHeight - mapPdfHeight - (3 * margin); // مساحة متبقية للمفتاح
-                    if (legendPdfHeight > 50) legendPdfHeight = 50; // حد أقصى لارتفاع المفتاح
-                    let legendPdfWidth = legendPdfHeight * legendAspectRatio;
-                    if (legendPdfWidth > pdfWidth - (2 * margin)) { // إذا كان المفتاح عريضًا جدًا
-                        legendPdfWidth = pdfWidth - (2 * margin);
-                        legendPdfHeight = legendPdfWidth / legendAspectRatio;
-                    }
+        // إخفاء عناصر التحكم مؤقتًا إذا أردت (اختياري)
+        const zoomControlElement = mapElement.querySelector('.leaflet-control-zoom');
+        const layersControlElement = document.querySelector('#layers-control-container .leaflet-control-layers'); // أو أي محدد آخر لعنصر التحكم بالطبقات
+        if (zoomControlElement) zoomControlElement.style.visibility = 'hidden';
+        if (layersControlElement) layersControlElement.style.visibility = 'hidden';
 
 
-                    // إضافة صورة المفتاح أسفل الخريطة
-                    pdf.addImage(legendImgData, 'PNG', margin, margin + mapPdfHeight + margin, legendPdfWidth, legendPdfHeight);
+        // مهلة صغيرة للسماح بتحديث الواجهة وإخفاء العناصر
+        setTimeout(() => {
+            console.log('PDF Export Action: Starting html2canvas...');
+            const canvasOptions = {
+                useCORS: true,    // مهم جداً لمربعات الخرائط من نطاقات أخرى
+                allowTaint: true, // قد يساعد مع بعض مشاكل CORS، لكن useCORS أفضل
+                logging: false,   // تعطيل تسجيلات html2canvas في الكونسول
+                scale: window.devicePixelRatio > 1 ? 1.5 : 1, // تحسين الجودة (يمكن زيادة القيمة بحذر)
+                // backgroundColor: null, // للحفاظ على شفافية الخلفية إن أمكن
+                onclone: (clonedDocument) => {
+                    // يمكنك إجراء تعديلات إضافية على النسخة المستنسخة قبل الالتقاط
+                    // مثلاً التأكد من أن عناصر التحكم مخفية في النسخة
+                    const clonedZoom = clonedDocument.querySelector('.leaflet-control-zoom');
+                    const clonedLayers = clonedDocument.querySelector('#layers-control-container .leaflet-control-layers');
+                    if(clonedZoom) clonedZoom.style.visibility = 'hidden';
+                    if(clonedLayers) clonedLayers.style.visibility = 'hidden';
+                }
+            };
 
-                    // إضافة عنوان أو تاريخ (اختياري)
-                    pdf.setFontSize(10);
-                    pdf.text('خريطة مُصدَّرة', margin, margin - 3);
-                    pdf.text(new Date().toLocaleDateString('ar-EG'), pdfWidth - margin, margin - 3, { align: 'right' });
+            Promise.all([
+                html2canvas(mapElement, canvasOptions),
+                html2canvas(legendElement, { ...canvasOptions, scale: 1 }) // قد لا تحتاج Legend لنفس الدقة العالية
+            ]).then(function ([mapCanvas, legendCanvas]) {
+                console.log('PDF Export Action: html2canvas finished successfully.');
 
+                // إعادة إظهار عناصر التحكم
+                if (zoomControlElement) zoomControlElement.style.visibility = 'visible';
+                if (layersControlElement) layersControlElement.style.visibility = 'visible';
 
-                    pdf.save('خريطتي.pdf');
+                const mapImgData = mapCanvas.toDataURL('image/png');
+                const legendImgData = legendCanvas.toDataURL('image/png');
 
-                    // إعادة الزر إلى حالته الطبيعية
-                    exportButton.disabled = false;
-                    exportButton.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        PDF
-                    `;
-
-                }).catch(function(error) {
-                    console.error('خطأ أثناء إنشاء PDF:', error);
-                    alert('حدث خطأ أثناء محاولة إخراج الخريطة. يرجى مراجعة الكونسول.');
-                    // إعادة الزر إلى حالته الطبيعية
-                    exportButton.disabled = false;
-                    exportButton.innerHTML = `
-                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                         PDF
-                    `;
+                // استخدام jsPDF (تم التحقق من وجودها في البداية)
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'mm',
+                    format: 'a4'
                 });
-            }, 100); // مهلة للسماح بالتحديث
-        });
-    } else {
-        if (!exportButton) console.error('لم يتم العثور على زر الإخراج exportPdfButton');
-        if (!mapElement) console.error('لم يتم العثور على عنصر الخريطة map');
-        if (!legendElement) console.error('لم يتم العثور على عنصر المفتاح custom-legend');
-    }
-});
-// =============================================================
-// == كود إخراج الخريطة إلى PDF (النسخة الوحيدة مع console.log) ==
-// =============================================================
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('PDF Export Setup: DOMContentLoaded fired.');
-    const exportButton = document.getElementById('exportPdfButton');
-    const mapElement = document.getElementById('map');
-    const legendElement = document.getElementById('custom-legend');
+                console.log('PDF Export Action: jsPDF instance created.');
 
-    console.log('PDF Export Setup: Attempting to find elements:');
-    console.log('PDF Export Setup: exportButton:', exportButton);
-    console.log('PDF Export Setup: mapElement:', mapElement);
-    console.log('PDF Export Setup: legendElement:', legendElement);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const margin = 10; // هامش 10 مم
 
-    if (exportButton && mapElement && legendElement) {
-        console.log('PDF Export Setup: All elements found. Adding click listener.');
-        exportButton.addEventListener('click', function () {
-            console.log('PDF Export Action: Button CLICKED!');
-            // ... (الكود الكامل لـ html2canvas و jsPDF مع باقي console.log) ...
-        });
-    } else {
-        console.error('PDF Export Setup: One or more required elements not found!');
-        // ... (رسائل الخطأ التفصيلية) ...
-    }
-});
+                // حساب أبعاد الخريطة في الـ PDF مع الحفاظ على النسبة
+                const mapAspectRatio = mapCanvas.width / mapCanvas.height;
+                let mapPdfWidth = pdfWidth - (2 * margin);
+                let mapPdfHeight = mapPdfWidth / mapAspectRatio;
+                const maxMapHeight = pdfHeight * 0.75; // حد أقصى لارتفاع الخريطة (75% من الصفحة)
+
+                if (mapPdfHeight > maxMapHeight) {
+                    mapPdfHeight = maxMapHeight;
+                    mapPdfWidth = mapPdfHeight * mapAspectRatio;
+                }
+                 // التأكد من أن عرض الخريطة لا يتجاوز المساحة المتاحة
+                if (mapPdfWidth > pdfWidth - (2 * margin)) {
+                    mapPdfWidth = pdfWidth - (2 * margin);
+                    mapPdfHeight = mapPdfWidth / mapAspectRatio;
+                }
+
+
+                // حساب أبعاد المفتاح في الـ PDF
+                const legendAspectRatio = legendCanvas.width / legendCanvas.height;
+                const availableHeightForLegend = pdfHeight - mapPdfHeight - (3 * margin); // المساحة المتبقية أسفل الخريطة
+                let legendPdfHeight = Math.min(availableHeightForLegend, 60); // حد أقصى لارتفاع المفتاح (60 مم) وقيد بالمساحة
+                let legendPdfWidth = legendPdfHeight * legendAspectRatio;
+
+                 // التأكد من أن عرض المفتاح لا يتجاوز المساحة المتاحة
+                if (legendPdfWidth > pdfWidth - (2 * margin)) {
+                    legendPdfWidth = pdfWidth - (2 * margin);
+                    legendPdfHeight = legendPdfWidth / legendAspectRatio;
+                     // إعادة التحقق من الارتفاع بعد تعديل العرض
+                    if (legendPdfHeight > availableHeightForLegend) {
+                         legendPdfHeight = availableHeightForLegend;
+                         legendPdfWidth = legendPdfHeight * legendAspectRatio;
+                    }
+                }
+
+                // تحديد موضع المفتاح (أسفل الخريطة في الوسط أو على اليسار)
+                let legendX = margin;
+                // يمكنك تعديل الحساب لوضعه في الوسط إذا أردت:
+                // let legendX = (pdfWidth - legendPdfWidth) / 2;
+                let legendY = margin + mapPdfHeight + margin;
+
+                 // التأكد من أن المفتاح لا يخرج عن أسفل الصفحة
+                if (legendY + legendPdfHeight > pdfHeight - margin) {
+                     console.warn("Legend might be too tall to fit completely with the map.");
+                     // يمكن تصغير ارتفاع المفتاح أكثر إذا لزم الأمر
+                     legendPdfHeight = Math.max(5, pdfHeight - legendY - margin); // 5mm كحد أدنى
+                     legendPdfWidth = legendPdfHeight * legendAspectRatio;
+                      // إعادة التأكد من العرض
+                     if (legendPdfWidth > pdfWidth - (2 * margin)) {
+                         legendPdfWidth = pdfWidth - (2 * margin);
+                     }
+                     // إعادة حساب الموضع الأفقي إذا تغير العرض
+                     // legendX = (pdfWidth - legendPdfWidth) / 2; // إذا كنت تريده في الوسط
+                     legendX = margin;
+                }
+
+
+                console.log(`PDF Export Action: Adding map image (${mapPdfWidth.toFixed(1)}x${mapPdfHeight.toFixed(1)}mm) at (${margin}, ${margin})`);
+                pdf.addImage(mapImgData, 'PNG', margin, margin, mapPdfWidth, mapPdfHeight);
+
+                console.log(`PDF Export Action: Adding legend image (${legendPdfWidth.toFixed(1)}x${legendPdfHeight.toFixed(1)}mm) at (${legendX.toFixed(1)}, ${legendY.toFixed(1)})`);
+                pdf.addImage(legendImgData, 'PNG', legendX, legendY, legendPdfWidth, legendPdfHeight);
+
+                // إضافة عنوان وتاريخ (اختياري)
+                pdf.setFontSize(10);
+                pdf.setTextColor(100); // لون رمادي داكن
+                pdf.text('خريطة جماعة العطاوية - نظام المعلومات الجغرافي', margin, margin - 4);
+                try { // استخدام try-catch لتجنب أخطاء التنسيق المحتملة للتواريخ في بعض المتصفحات
+                     pdf.text(new Date().toLocaleDateString('ar-EG-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' }), pdfWidth - margin, margin - 4, { align: 'right' });
+                } catch (e) {
+                     pdf.text(new Date().toLocaleDateString(), pdfWidth - margin, margin - 4, { align: 'right' }); // Fallback
+                }
+
+                console.log('PDF Export Action: Saving PDF...');
+                pdf.save('خريطة_العطاوية.pdf');
+
+                // إعادة الزر إلى حالته الطبيعية
+                exportButton.disabled = false;
+                exportButton.innerHTML = originalButtonHtml;
+                console.log('PDF Export Action: Process completed successfully.');
+
+            }).catch(function(error) {
+                console.error('PDF Export Error: Error during html2canvas or PDF generation:', error);
+                alert('حدث خطأ أثناء محاولة إخراج الخريطة. يرجى مراجعة الكونسول لمزيد من التفاصيل (اضغط F12). قد تكون المشكلة متعلقة بـ CORS.');
+
+                // إعادة إظهار عناصر التحكم في حالة الخطأ أيضاً
+                if (zoomControlElement) zoomControlElement.style.visibility = 'visible';
+                if (layersControlElement) layersControlElement.style.visibility = 'visible';
+
+                // إعادة الزر إلى حالته الطبيعية
+                exportButton.disabled = false;
+                exportButton.innerHTML = originalButtonHtml;
+            });
+        }, 150); // زيادة المهلة قليلاً قد تساعد في التقاط العناصر بشكل أفضل
+
+    });
+} else {
+    console.error('PDF Export Setup Error: One or more required elements not found!');
+    if (!exportButton) console.error(' - Element with ID "exportPdfButton" not found.');
+    if (!mapElement) console.error(' - Element with ID "map" not found.');
+    if (!legendElement) console.error(' - Element with ID "custom-legend" not found. Make sure updateCustomLegend() creates it.');
+}
+// --- نهاية كود إخراج PDF ---
     // =============================================================
     // == كود النافذة المنبثقة لـ "اتصل بنا" (Contact Us Modal) ==
     // =============================================================
