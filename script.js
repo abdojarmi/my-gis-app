@@ -516,118 +516,6 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
                 }
                 updateCustomLegend(leftControlsArea);
             }
-
-            const exportButton = document.getElementById('export-data-btn');
-            if (exportButton) {
-                exportButton.addEventListener('click', () => {
-                    alert('سيتم تنفيذ وظيفة إخراج البيانات هنا!');
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error loading/processing GeoJSON:', error);
-            const mapDiv = document.getElementById('map');
-            if (mapDiv) {
-                mapDiv.innerHTML = `<div style="padding:20px;color:red;text-align:center;"><h3>خطأ في تحميل البيانات: ${error.message}</h3><p>يرجى التحقق من وحدة التحكم للمزيد من التفاصيل.</p></div>`;
-            }
-        });
-
-    function updateCustomLegend(containerElement) {
-        const legendContainerId = 'custom-legend';
-        let legendDiv = document.getElementById(legendContainerId);
-
-        if (!legendDiv) {
-            legendDiv = document.createElement('div');
-            legendDiv.id = legendContainerId;
-            if (containerElement) {
-                containerElement.appendChild(legendDiv);
-            } else {
-                console.warn("Legend container not provided, legend may not be displayed correctly.");
-                document.body.appendChild(legendDiv);
-            }
-        }
-        legendDiv.innerHTML = '<h4>وسيلة الإيضاح</h4>';
-
-        const orderedLayerNames = Object.keys(detailedStyles);
-
-        orderedLayerNames.forEach(mainLayerName => {
-            if (detailedStyles.hasOwnProperty(mainLayerName) && mainLayerName !== "طبقة غير مصنفة") {
-                const layerConfig = detailedStyles[mainLayerName];
-
-                const mainLayerDiv = document.createElement('div');
-                mainLayerDiv.innerHTML = `<strong>${layerConfig.displayName || mainLayerName}</strong>`;
-                legendDiv.appendChild(mainLayerDiv);
-
-                if (layerConfig.subcategories && Object.keys(layerConfig.subcategories).length > 0) {
-                    Object.keys(layerConfig.subcategories).forEach(subcatName => {
-                        if (subcatName.startsWith("_default")) return;
-
-                        const subcatConfig = layerConfig.subcategories[subcatName];
-                        if (!subcatConfig) return;
-
-                        const itemDiv = document.createElement('div');
-                        itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
-                        let iconHtml = '';
-
-                        if (subcatConfig.style) {
-                            iconHtml = createFeatureIcon(subcatConfig.style).options.html;
-                        } else if (subcatConfig.styleConfig) {
-                            const sc = subcatConfig.styleConfig;
-                            const isLine = mainLayerName === "شبكة الطرق" ||
-                                           (sc.hasOwnProperty('weight') && (!sc.hasOwnProperty('fillColor') || sc.fillColor === 'transparent' || sc.fillOpacity === 0));
-
-                            if (isLine) {
-                                if (sc.dashArray) {
-                                    iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, sc.weight || 2)}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
-                                } else {
-                                    iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
-                                }
-                            } else { // Polygon
-                                iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${sc.fillOpacity || 1};"></span>`;
-                            }
-                        }
-                        itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span>${subcatConfig.displayName || subcatName}</span>`;
-                        legendDiv.appendChild(itemDiv);
-                    });
-                } else if (layerConfig.defaultPointStyle || layerConfig.defaultLinePolyStyle) {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
-                    let iconHtml = '';
-                    if (layerConfig.defaultPointStyle) {
-                         iconHtml = createFeatureIcon(layerConfig.defaultPointStyle).options.html;
-                    } else if (layerConfig.defaultLinePolyStyle) {
-                        const sc = layerConfig.defaultLinePolyStyle;
-                         const isLine = mainLayerName === "شبكة الطرق" ||
-                                       (sc.hasOwnProperty('weight') && (!sc.hasOwnProperty('fillColor') || sc.fillColor === 'transparent' || sc.fillOpacity === 0));
-                        if (isLine) {
-                             if (sc.dashArray) {
-                                iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, sc.weight || 2)}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
-                            } else {
-                                 iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
-                            }
-                        } else { // Polygon
-                             iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${sc.fillOpacity || 1};"></span>`;
-                        }
-                    }
-                    itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span><small>(نمط افتراضي للطبقة)</small></span>`;
-                    legendDiv.appendChild(itemDiv);
-                }
-            }
-        });
-    }
-
-    function styleLayerControl() {
-        const layerControlElement = document.querySelector('#layers-control-container .leaflet-control-layers');
-        if (layerControlElement) {
-            const layersListContainer = layerControlElement.querySelector('.leaflet-control-layers-list');
-            if (layersListContainer && !layerControlElement.querySelector('.leaflet-control-layers-title')) {
-                const titleElement = document.createElement('div');
-                titleElement.className = 'leaflet-control-layers-title';
-                titleElement.innerHTML = '<strong>الطبقات الرئيسية</strong>';
-                layerControlElement.insertBefore(titleElement, layersListContainer);
-            }
-        }
-    }
 // =============================================================
 // == كود إخراج الخريطة إلى PDF (النسخة المنقحة والموحدة) ==
 // =============================================================
@@ -811,6 +699,117 @@ if (exportButton && mapElement && legendElement) {
     if (!legendElement) console.error(' - Element with ID "custom-legend" not found. Make sure updateCustomLegend() creates it.');
 }
 // --- نهاية كود إخراج PDF ---
+            const exportButton = document.getElementById('export-data-btn');
+            if (exportButton) {
+                exportButton.addEventListener('click', () => {
+                    alert('سيتم تنفيذ وظيفة إخراج البيانات هنا!');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error loading/processing GeoJSON:', error);
+            const mapDiv = document.getElementById('map');
+            if (mapDiv) {
+                mapDiv.innerHTML = `<div style="padding:20px;color:red;text-align:center;"><h3>خطأ في تحميل البيانات: ${error.message}</h3><p>يرجى التحقق من وحدة التحكم للمزيد من التفاصيل.</p></div>`;
+            }
+        });
+
+    function updateCustomLegend(containerElement) {
+        const legendContainerId = 'custom-legend';
+        let legendDiv = document.getElementById(legendContainerId);
+
+        if (!legendDiv) {
+            legendDiv = document.createElement('div');
+            legendDiv.id = legendContainerId;
+            if (containerElement) {
+                containerElement.appendChild(legendDiv);
+            } else {
+                console.warn("Legend container not provided, legend may not be displayed correctly.");
+                document.body.appendChild(legendDiv);
+            }
+        }
+        legendDiv.innerHTML = '<h4>وسيلة الإيضاح</h4>';
+
+        const orderedLayerNames = Object.keys(detailedStyles);
+
+        orderedLayerNames.forEach(mainLayerName => {
+            if (detailedStyles.hasOwnProperty(mainLayerName) && mainLayerName !== "طبقة غير مصنفة") {
+                const layerConfig = detailedStyles[mainLayerName];
+
+                const mainLayerDiv = document.createElement('div');
+                mainLayerDiv.innerHTML = `<strong>${layerConfig.displayName || mainLayerName}</strong>`;
+                legendDiv.appendChild(mainLayerDiv);
+
+                if (layerConfig.subcategories && Object.keys(layerConfig.subcategories).length > 0) {
+                    Object.keys(layerConfig.subcategories).forEach(subcatName => {
+                        if (subcatName.startsWith("_default")) return;
+
+                        const subcatConfig = layerConfig.subcategories[subcatName];
+                        if (!subcatConfig) return;
+
+                        const itemDiv = document.createElement('div');
+                        itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
+                        let iconHtml = '';
+
+                        if (subcatConfig.style) {
+                            iconHtml = createFeatureIcon(subcatConfig.style).options.html;
+                        } else if (subcatConfig.styleConfig) {
+                            const sc = subcatConfig.styleConfig;
+                            const isLine = mainLayerName === "شبكة الطرق" ||
+                                           (sc.hasOwnProperty('weight') && (!sc.hasOwnProperty('fillColor') || sc.fillColor === 'transparent' || sc.fillOpacity === 0));
+
+                            if (isLine) {
+                                if (sc.dashArray) {
+                                    iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, sc.weight || 2)}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
+                                } else {
+                                    iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
+                                }
+                            } else { // Polygon
+                                iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${sc.fillOpacity || 1};"></span>`;
+                            }
+                        }
+                        itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span>${subcatConfig.displayName || subcatName}</span>`;
+                        legendDiv.appendChild(itemDiv);
+                    });
+                } else if (layerConfig.defaultPointStyle || layerConfig.defaultLinePolyStyle) {
+                    const itemDiv = document.createElement('div');
+                    itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
+                    let iconHtml = '';
+                    if (layerConfig.defaultPointStyle) {
+                         iconHtml = createFeatureIcon(layerConfig.defaultPointStyle).options.html;
+                    } else if (layerConfig.defaultLinePolyStyle) {
+                        const sc = layerConfig.defaultLinePolyStyle;
+                         const isLine = mainLayerName === "شبكة الطرق" ||
+                                       (sc.hasOwnProperty('weight') && (!sc.hasOwnProperty('fillColor') || sc.fillColor === 'transparent' || sc.fillOpacity === 0));
+                        if (isLine) {
+                             if (sc.dashArray) {
+                                iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, sc.weight || 2)}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
+                            } else {
+                                 iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
+                            }
+                        } else { // Polygon
+                             iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${sc.fillOpacity || 1};"></span>`;
+                        }
+                    }
+                    itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span><small>(نمط افتراضي للطبقة)</small></span>`;
+                    legendDiv.appendChild(itemDiv);
+                }
+            }
+        });
+    }
+
+    function styleLayerControl() {
+        const layerControlElement = document.querySelector('#layers-control-container .leaflet-control-layers');
+        if (layerControlElement) {
+            const layersListContainer = layerControlElement.querySelector('.leaflet-control-layers-list');
+            if (layersListContainer && !layerControlElement.querySelector('.leaflet-control-layers-title')) {
+                const titleElement = document.createElement('div');
+                titleElement.className = 'leaflet-control-layers-title';
+                titleElement.innerHTML = '<strong>الطبقات الرئيسية</strong>';
+                layerControlElement.insertBefore(titleElement, layersListContainer);
+            }
+        }
+    }
     // =============================================================
     // == كود النافذة المنبثقة لـ "اتصل بنا" (Contact Us Modal) ==
     // =============================================================
