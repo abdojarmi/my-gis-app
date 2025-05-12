@@ -628,10 +628,6 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             }
         }
     }
-document.addEventListener('DOMContentLoaded', function () {
-    const exportButton = document.getElementById('exportPdfButton');
-    const mapElement = document.getElementById('map'); // <-- تأكد أن هذا هو الـ ID الصحيح لـ div الخريطة
-    const legendElement = document.getElementById('custom-legend'); // <-- تأكد أن هذا هو الـ ID الصحيح لـ div المفتاح
 
     if (exportButton && mapElement && legendElement) {
         exportButton.addEventListener('click', function () {
@@ -807,7 +803,7 @@ document.addEventListener('DOMContentLoaded', function () {
             exportButton.disabled = true;
             exportButton.innerHTML = 'جارٍ التحميل...';
 
-            updateCustomLegendForVisibleLayers(legendContainer);
+            updateCustomLegend(legendContainer);
             const legendElement = document.getElementById('custom-legend');
 
             setTimeout(() => {
