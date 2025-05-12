@@ -699,9 +699,9 @@ if (exportButton && mapElement && legendElement) {
     if (!legendElement) console.error(' - Element with ID "custom-legend" not found. Make sure updateCustomLegend() creates it.');
 }
 // --- نهاية كود إخراج PDF ---
-            const exportButton = document.getElementById('export-data-btn');
-            if (exportButton) {
-                exportButton.addEventListener('click', () => {
+            const exportDataBtn = document.getElementById('export-data-btn'); // <<< تغيير اسم المتغير هنا
+            if (exportDataBtn) { // <<< تغيير اسم المتغير هنا أيضاً
+                exportDataBtn.addEventListener('click', () => { // <<< وهنا أيضاً
                     alert('سيتم تنفيذ وظيفة إخراج البيانات هنا!');
                 });
             }
