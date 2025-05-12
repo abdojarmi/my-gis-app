@@ -628,6 +628,10 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             }
         }
     }
+document.addEventListener('DOMContentLoaded', function () {
+    const exportButton = document.getElementById('exportPdfButton');
+    const mapElement = document.getElementById('map'); // <-- تأكد أن هذا هو الـ ID الصحيح لـ div الخريطة
+    const legendElement = document.getElementById('custom-legend'); // <-- تأكد أن هذا هو الـ ID الصحيح لـ div المفتاح
 
     if (exportButton && mapElement && legendElement) {
         exportButton.addEventListener('click', function () {
@@ -742,132 +746,31 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
         if (!legendElement) console.error('لم يتم العثور على عنصر المفتاح custom-legend');
     }
 });
-// ========== كود تصدير الخريطة إلى PDF مع الطبقات المفعلة والمفتاح المتعلق بها ==========
+// =============================================================
+// == كود إخراج الخريطة إلى PDF (النسخة الوحيدة مع console.log) ==
+// =============================================================
 document.addEventListener('DOMContentLoaded', function () {
+    console.log('PDF Export Setup: DOMContentLoaded fired.');
     const exportButton = document.getElementById('exportPdfButton');
     const mapElement = document.getElementById('map');
-    const legendContainer = document.getElementById('left-controls-area');
+    const legendElement = document.getElementById('custom-legend');
 
-    // دالة لتحديث وسيلة الإيضاح للطبقات المفعلة فقط
-    function updateCustomLegendForVisibleLayers(containerElement) {
-        const legendContainerId = 'custom-legend';
-        let legendDiv = document.getElementById(legendContainerId);
-        if (!legendDiv) {
-            legendDiv = document.createElement('div');
-            legendDiv.id = legendContainerId;
-            containerElement.appendChild(legendDiv);
-        }
+    console.log('PDF Export Setup: Attempting to find elements:');
+    console.log('PDF Export Setup: exportButton:', exportButton);
+    console.log('PDF Export Setup: mapElement:', mapElement);
+    console.log('PDF Export Setup: legendElement:', legendElement);
 
-        legendDiv.innerHTML = '<h4>وسيلة الإيضاح</h4>';
-
-        const visibleLayerNames = Object.keys(createdLayers).filter(name => map.hasLayer(createdLayers[name]));
-
-        visibleLayerNames.forEach(mainLayerName => {
-            const layerConfig = detailedStyles[mainLayerName];
-            if (!layerConfig) return;
-
-            const mainLayerDiv = document.createElement('div');
-            mainLayerDiv.innerHTML = `<strong>${layerConfig.displayName || mainLayerName}</strong>`;
-            legendDiv.appendChild(mainLayerDiv);
-
-            if (layerConfig.subcategories && Object.keys(layerConfig.subcategories).length > 0) {
-                Object.keys(layerConfig.subcategories).forEach(subcatName => {
-                    if (subcatName.startsWith("_default")) return;
-
-                    const subcatConfig = layerConfig.subcategories[subcatName];
-                    if (!subcatConfig) return;
-
-                    const itemDiv = document.createElement('div');
-                    itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
-                    let iconHtml = '';
-
-                    if (subcatConfig.style) {
-                        iconHtml = createFeatureIcon(subcatConfig.style).options.html;
-                    } else if (subcatConfig.styleConfig) {
-                        const sc = subcatConfig.styleConfig;
-                        if (sc.dashArray) {
-                            iconHtml = `<svg width="20" height="10"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color}; stroke-width:${sc.weight}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')}"/></svg>`;
-                        } else {
-                            iconHtml = `<span style="display:inline-block; width:16px; height:${sc.weight}px; background-color:${sc.color}; margin-right:5px;"></span>`;
-                        }
-                    }
-                    itemDiv.innerHTML = `<span style="width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px;">${iconHtml}</span> <span>${subcatConfig.displayName || subcatName}</span>`;
-                    legendDiv.appendChild(itemDiv);
-                });
-            }
-        });
-    }
-
-    if (exportButton && mapElement && legendContainer) {
+    if (exportButton && mapElement && legendElement) {
+        console.log('PDF Export Setup: All elements found. Adding click listener.');
         exportButton.addEventListener('click', function () {
-            exportButton.disabled = true;
-            exportButton.innerHTML = 'جارٍ التحميل...';
-
-            updateCustomLegend(legendContainer);
-            const legendElement = document.getElementById('custom-legend');
-
-            setTimeout(() => {
-                const canvasOptions = {
-                    useCORS: true,
-                    allowTaint: true,
-                    logging: false,
-                    scale: window.devicePixelRatio > 1 ? 2 : 1
-                };
-
-                Promise.all([
-                    html2canvas(mapElement, canvasOptions),
-                    html2canvas(legendElement, canvasOptions)
-                ]).then(function ([mapCanvas, legendCanvas]) {
-                    const mapImgData = mapCanvas.toDataURL('image/png');
-                    const legendImgData = legendCanvas.toDataURL('image/png');
-
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    const margin = 10;
-
-                    const mapAspectRatio = mapCanvas.width / mapCanvas.height;
-                    let mapPdfWidth = pdfWidth - (2 * margin);
-                    let mapPdfHeight = mapPdfWidth / mapAspectRatio;
-                    if (mapPdfHeight > pdfHeight * 0.7) {
-                        mapPdfHeight = pdfHeight * 0.7;
-                        mapPdfWidth = mapPdfHeight * mapAspectRatio;
-                    }
-
-                    pdf.addImage(mapImgData, 'PNG', margin, margin, mapPdfWidth, mapPdfHeight);
-
-                    const legendAspectRatio = legendCanvas.width / legendCanvas.height;
-                    let legendPdfHeight = pdfHeight - mapPdfHeight - (3 * margin);
-                    if (legendPdfHeight > 50) legendPdfHeight = 50;
-                    let legendPdfWidth = legendPdfHeight * legendAspectRatio;
-                    if (legendPdfWidth > pdfWidth - (2 * margin)) {
-                        legendPdfWidth = pdfWidth - (2 * margin);
-                        legendPdfHeight = legendPdfWidth / legendAspectRatio;
-                    }
-
-                    pdf.addImage(legendImgData, 'PNG', margin, margin + mapPdfHeight + margin, legendPdfWidth, legendPdfHeight);
-                    pdf.setFontSize(10);
-                    pdf.text('خريطة مُصدَّرة', margin, margin - 3);
-                    pdf.text(new Date().toLocaleDateString('ar-EG'), pdfWidth - margin, margin - 3, { align: 'right' });
-
-                    pdf.save('خريطة العطاوية.pdf');
-
-                    exportButton.disabled = false;
-                    exportButton.innerHTML = '📄 PDF';
-                }).catch(function (error) {
-                    console.error('خطأ أثناء إنشاء PDF:', error);
-                    alert('حدث خطأ أثناء الإخراج.');
-                    exportButton.disabled = false;
-                    exportButton.innerHTML = '📄 PDF';
-                });
-            }, 200);
+            console.log('PDF Export Action: Button CLICKED!');
+            // ... (الكود الكامل لـ html2canvas و jsPDF مع باقي console.log) ...
         });
     } else {
-        console.error('لم يتم العثور على أحد العناصر التالية: الزر، الخريطة أو مفتاح الخريطة');
+        console.error('PDF Export Setup: One or more required elements not found!');
+        // ... (رسائل الخطأ التفصيلية) ...
     }
 });
-
     // =============================================================
     // == كود النافذة المنبثقة لـ "اتصل بنا" (Contact Us Modal) ==
     // =============================================================
