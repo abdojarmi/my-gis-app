@@ -422,6 +422,38 @@ document.addEventListener('DOMContentLoaded', function() {
             // --- أضف باقي تعريفات الطبقات هنا بنفس الطريقة ---
             // مثال:
             { 
+                        name: "محطات الوقود", 
+                keys: directMatchPropKeys, 
+                keywords: {
+                    'amenity': ["fuel", "filling_station"], 
+                    'shop': ["fuel"], 
+                    'النوع': ["وقود", "محطة بنزين", "بنزين", "محطة وقود", "محروقات"], 
+                    'name': ["total", "shell", "afriquia", "محطة", "بترول", "غازوال", "station petrol"] // أضفت كلمات مفتاحية إضافية
+                    // يمكنك إضافة 'building':["fuel_station"] إذا كانت بعض بياناتك تحتوي على ذلك
+                }
+                // لا يوجد geomCheck ضروري هنا لأنها عادةً نقاط، ولكن يمكن أن تكون مضلعات صغيرة
+            }, // <--- فاصلة هنا لأن هناك طبقة أخرى بعدها
+
+            { 
+                name: "التعليم والتكوين وتشغيل الكفاءات", 
+                keys: directMatchPropKeys, 
+                keywords: {
+                    'amenity': ["school", "college", "university", "kindergarten", "training", "research_institute", "language_school", "music_school", "driving_school", "library"], // Library قد تكون تابعة للتعليم
+                    'building': ["school", "college", "university", "kindergarten", 'dormitory', 'classroom', 'library'], 
+                    'office': ['education', 'research'], // مكاتب ذات صلة
+                    'النوع': [
+                        "تعليم", "مدرسة", "جامعة", "معهد", "تكوين", "روضة", 
+                        "ثانوية", "اعدادية", "ابتدائي", "تأهيلي", "خصوصي", 
+                        "فصل دراسي", "دعم مدرسي", "محو الامية", "ادارة تربوية", 
+                        "معهد تقني", "دعم تشغيل الشباب", "مكتبة" // إضافة الكلمات من الفئات الفرعية
+                    ], 
+                    'categorie': ["education", "enseignement", "formation", "recherche", "library"]
+                }
+                // يمكن أن تكون نقاط (مثل موقع مدرسة) أو مضلعات (مبنى المدرسة)
+            }, // <--- فاصلة هنا إذا كانت هناك طبقات أخرى بعدها
+
+            // مثال لـ "توزيع الماء والكهرباء" (كما كان لديك)
+            { 
                 name: "توزيع الماء والكهرباء", 
                 keys: directMatchPropKeys, 
                 keywords: {
@@ -430,10 +462,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     'utility':['water', 'power', 'electricity'], 
                     'النوع': ['ماء', 'كهرباء', 'توزيع', 'محول', 'خزان', 'مكتب توزيع', 'محطة تحويل']
                 } 
-            } // <--- لا توجد فاصلة هنا إذا كان هذا هو العنصر الأخير في المصفوفة
+                // لا توجد فاصلة هنا إذا كان هذا هو العنصر الأخير
+            } 
+            // ... إذا كانت هناك طبقات أخرى، أضف فاصلة واستمر ...
             
         ]; // <--- نهاية المصفوفة (قوس مربع مغلق)
-
         for (const check of layerChecks) {
             result = checkLayer(check.name, check.keys, check.keywords, true);
             if (result) return result;
