@@ -480,8 +480,9 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
                     const displayNameForControl = mainLayerConfig.displayName || mainLayerName;
                     layerControlEntries[displayNameForControl] = geoJsonLayerGroup;
 
-                    if (["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني"].includes(mainLayerName) ||
-                        ["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني"].includes(displayNameForControl) ) {
+                    // MODIFIED SECTION: Added "طبقة غير مصنفة" to the list of layers shown by default
+                    if (["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني", "طبقة غير مصنفة"].includes(mainLayerName) ||
+                        ["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني", "طبقة غير مصنفة"].includes(displayNameForControl) ) {
                         geoJsonLayerGroup.addTo(map);
                     }
                 }
