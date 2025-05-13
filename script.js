@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1. تهيئة الخريطة
     var map = L.map('map', {
         zoomControl: false // تعطيل عنصر التحكم بالتكبير الافتراضي، سنضيفه يدويًا
-    }).setView([31.83, -7.31], 13);
+    }).setView([31.83, -7.31], 12);
 
     // 2. إضافة طبقة أساس (TileLayer)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
