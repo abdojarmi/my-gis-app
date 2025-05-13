@@ -328,45 +328,111 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const directMatchPropKeys = ['MainCategory', 'LayerGroup', 'اسم_الطبقة_الرئيسي', 'layer_name_principal', 'layer', 'LAYER', 'nom_couche', 'Name', 'NAME', 'اسم_الطبقة'];
         let result;
+        // =================== هذا هو المكان الذي تضع فيه مصفوفة layerChecks الجديدة والشروط الاحتياطية ===================
+        const layerChecks = [ // <--- بداية المصفوفة (قوس مربع مفتوح)
+            // 1. طبقة المباني و أحياء (بناءً على Console)
+            { 
+                name: "طبقة المباني", 
+                keys: [], 
+                keywords: { 
+                    'نوع_الحي': ["سكني", "خدماتي"], 
+                    'fclass': ["building", "construction"], 
+                    'type': ["building", "construction"], 
+                    'النوع': ["مبنى", "بناية"]
+                }, 
+                geomCheck: ["Polygon", "MultiPolygon"]
+            }, // <--- فاصلة هنا لأن هناك عنصر آخر يليه
 
-        // --- Define checks for each problematic layer (and others) ---
-        const layerChecks = [
-            { name: "حدود إدارية العطاوية", keys: directMatchPropKeys, keywords: { 
-                'type': ["administrative", "boundary"], 'TYPE': ["administrative", "boundary"], 'fclass': ["administrative", "boundary"], 'الوصف': ["حدود إدارية", "حدود"], 'Name': ["حدود"], 'LAYER': ["حدود"]
-            }},
-            { name: "المناطق الخضراء والزراعة", keys: directMatchPropKeys, keywords: {
-                'type': ["green_area", "park", "farmland", "agriculture", "garden"], 'fclass': ["park", "farmland", "forest", "grass", "meadow"], 'landuse': ["farmland", "forest", "grass", "meadow", "orchard", "vineyard", "greenfield"], 'النوع': ["زراعة", "خضراء", "حديقة", "منتزه"]
-            }},
-            { name: "طبقة المباني", keys: directMatchPropKeys, keywords: {
-                'building': ["yes", "house", "residential", "commercial", "industrial", "service"], // Check if 'building' property exists and has common values
-                'fclass': ["building"], 'type': ["building", "construction"], 'النوع': ["مبنى", "بناية"]
-            }},
-            { name: "محطات الوقود", keys: directMatchPropKeys, keywords: {
-                'amenity': ["fuel"], 'shop': ["fuel"], 'النوع': ["وقود", "محطة بنزين"], 'name': ["وقود", "بنزين", "غاز"]
-            }},
-            { name: "التعليم والتكوين وتشغيل الكفاءات", keys: directMatchPropKeys, keywords: {
-                'amenity': ["school", "college", "university", "kindergarten", "training"], 'building': ["school", "college", "university", "kindergarten"], 'النوع': ["تعليم", "مدرسة", "جامعة", "معهد", "تكوين", "روضة"], 'categorie': ["education", "enseignement"]
-            }},
-            { name: "الامن والوقاية المدنية", keys: directMatchPropKeys, keywords: {
-                'amenity': ["police", "fire_station", "emergency_service"], 'building': ["police", "fire_station"], 'النوع': ["امن", "شرطة", "وقاية مدنية", "اطفاء", "طوارئ"], 'emergency': ["yes", "designated"]
-            }},
-            { name: "الادارات الترابية", keys: directMatchPropKeys, keywords: {
-                'amenity': ["townhall", "public_building", "government"], 'office': ["government", "administrative"], 'النوع': ["ادارة", "ترابية", "جماعة", "عمالة", "قيادة", "بلدية"]
-            }},
-            { name: "المرافق الرياضية والترفيهية", keys: directMatchPropKeys, keywords: {
-                'leisure': ["pitch", "stadium", "sports_centre", "playground", "park", "garden", "track"], 'sport': ["soccer", "basketball", "tennis", "swimming"], 'amenity': ["theatre", "cinema", "community_centre"], 'النوع': ["رياضة", "ترفيه", "ملعب", "مسبح", "ثقافي", "مسرح"]
-            }},
-            // Add other layers that were working fine if needed, or rely on generic checks below
-            { name: "شبكة الطرق", keys: directMatchPropKeys.concat(['fclass']), keywords: { 'highway': ['residential', 'primary', 'secondary', 'tertiary', 'unclassified', 'service', 'track', 'path'], 'fclass': ['primary', 'secondary', 'tertiary', 'residential', 'service', 'track', 'path', 'unclassified_road'] } }, // fclass is also a direct match key here if value is "شبكة الطرق"
-            { name: "الصحة والمجال الاجتماعي", keys: directMatchPropKeys, keywords: {'amenity': ['hospital', 'clinic', 'doctors', 'dentist', 'pharmacy', 'social_facility'], 'النوع': ['صحة', 'مستشفى', 'اجتماعي']} },
-            { name: "توزيع الماء والكهرباء", keys: directMatchPropKeys, keywords: {'power': ['substation', 'transformer', 'plant'], 'man_made': ['water_tower', 'reservoir', 'pipeline'], 'النوع': ['ماء', 'كهرباء', 'توزيع']} },
-            { name: "التشوير الطرقي", keys: directMatchPropKeys, keywords: {'highway': ['traffic_signals', 'stop', 'give_way'], 'traffic_sign': ['*'], 'النوع': ['تشوير', 'علامة']} }, // * as a wildcard for any value in traffic_sign
-            { name: "الخدمات الدينية", keys: directMatchPropKeys, keywords: {'amenity': ['place_of_worship'], 'religion': ['muslim', 'christian', 'jewish'], 'building': ['mosque', 'church', 'synagogue'], 'النوع': ['ديني', 'مسجد', 'كنيسة', 'مصلى']} },
-            { name: "النقل", keys: directMatchPropKeys, keywords: {'amenity': ['bus_station', 'taxi_rank', 'parking'], 'public_transport': ['station', 'stop_position'], 'النوع': ['نقل', 'محطة', 'موقف']} },
-            { name: "المالية والجبايات", keys: directMatchPropKeys, keywords: {'amenity': ['bank', 'atm', 'post_office'], 'office': ['insurance', 'tax'], 'النوع': ['مالية', 'بنك', 'بريد', 'ضرائب']} },
-            { name: "المرافق التجارية", keys: directMatchPropKeys, keywords: {'shop': ['*'], 'amenity':['marketplace', 'restaurant', 'cafe', 'fast_food'], 'النوع': ['تجاري', 'سوق', 'متجر']} },
-            { name: "أحياء", keys: directMatchPropKeys, keywords: {'landuse': ['residential'], 'place': ['neighbourhood', 'suburb', 'quarter'], 'النوع': ['حي سكني', 'حي']} }
-        ];
+            { 
+                name: "أحياء", 
+                keys: [], 
+                keywords: {
+                    'اسم_الحي': ['*'], 
+                    'نوع_الحي': ['سكني'], 
+                    'place': ['neighbourhood', 'suburb', 'quarter', 'locality', 'village'],
+                    'landuse': ['residential']
+                },
+                geomCheck: ["Polygon", "MultiPolygon"]
+            }, // <--- فاصلة هنا
+
+            // 2. حدود إدارية العطاوية (تعريف واحد فقط)
+            { 
+                name: "حدود إدارية العطاوية", 
+                keys: directMatchPropKeys, 
+                keywords: { 
+                    'LAYER': ["حدود العطاوية", "الحدود الادارية للعطاوية", "Limites Communes"], 
+                    'Name': ["حدود جماعة العطاوية"],
+                    'type': ["administrative", "boundary"], 
+                    'fclass': ["administrative", "boundary_administrative"],
+                    'الوصف': ["حدود ادارية"] 
+                }, 
+                geomCheck: ["LineString", "Polygon", "MultiPolygon"]
+            }, // <--- فاصلة هنا
+
+            // 3. المناطق الخضراء والزراعة
+            { 
+                name: "المناطق الخضراء والزراعة", 
+                keys: directMatchPropKeys, 
+                keywords: {
+                    'landuse': ["farmland", "forest", "grass", "meadow", "orchard", "vineyard", "greenfield", "recreation_ground", "cemetery", "village_green", "plant_nursery", "allotments", "flowerbed", "conservation", "greenery", "park", "garden"],
+                    'natural': ['wood', 'tree_row', 'grassland', 'scrub', 'heath', 'tree', 'fell', 'wetland', 'bare_rock', 'scree', 'shingle', 'sand', 'beach', 'water', 'spring', 'vegetation'],
+                    'fclass': ["park", "farmland", "forest", "grass", "meadow", "scrub", "heath", "orchard", "cemetery", "village_green", "greenfield", "wood", "garden", "nature_reserve"],
+                    'النوع': ["زراعة", "خضراء", "حديقة", "منتزه", "مغروسات", "مزروعات", "بستان", "غابة", "منطقة خضراء", "فلاحي", "مساحة خضراء"]
+                }, 
+                geomCheck: ["Polygon", "MultiPolygon"]
+            }, // <--- فاصلة هنا
+
+            // 4. محطات الوقود
+            { 
+                name: "محطات الوقود", 
+                keys: directMatchPropKeys, 
+                keywords: {
+                    'amenity': ["fuel", "filling_station"], 
+                    'shop': ["fuel"], 
+                    'النوع': ["وقود", "محطة بنزين", "بنزين", "محطة وقود"], 
+                    'name': ["total", "shell", "afriquia", "محطة", "بترول"]
+                }
+            }, // <--- فاصلة هنا
+
+            // 5. المرافق الرياضية والترفيهية
+            { 
+                name: "المرافق الرياضية والترفيهية", 
+                keys: directMatchPropKeys, 
+                keywords: {
+                    'leisure': ["pitch", "stadium", "sports_centre", "playground", "track", "fitness_centre", "swimming_pool", "sports_hall", "miniature_golf", "golf_course", "ice_rink", "water_park", "dog_park", "nature_reserve", "bandstand", "amusement_arcade", "dance_hall", "club", "marina", "slipway", "adult_gaming_centre", "park", "garden"], 
+                    'sport': ["soccer", "basketball", "tennis", "swimming", "athletics", "football", "golf", "equestrian", "multi", "gymnastics", "volleyball", "handball", "table_tennis", "shooting", "archery", "boules", "bowling", "skating", "climbing", "diving", "surfing", "yoga"], 
+                    'amenity': ["theatre", "cinema", "community_centre", "arts_centre", "nightclub", "social_club", "conference_centre", "events_venue", "planetarium", "casino", "youth_centre", "library", "internet_cafe", "public_bath", "spa"], 
+                    'tourism': ["theme_park", "zoo", "picnic_site", "attraction", "artwork", "gallery", "museum", "aquarium", "viewpoint", "information"],
+                    'النوع': ["رياضة", "ترفيه", "ملعب", "مسبح", "ثقافي", "مسرح", "نادي", "حديقة ترفيهية", "منتزه", "قاعة", "فضاء", "مكتبة", "سينما", "مركز ثقافي", "نقطة جذب", "متحف", "ملعب رياضي", "قاعة رياضية"]
+                }
+            }, // <--- فاصلة هنا
+
+            // 6. شبكة الطرق
+            { 
+                name: "شبكة الطرق", 
+                keys: directMatchPropKeys, 
+                keywords: { 
+                    'highway': ['residential', 'primary', 'secondary', 'tertiary', 'unclassified', 'service', 'track', 'path', 'road', 'living_street', 'pedestrian', 'footway', 'cycleway', 'motorway', 'trunk', 'motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link', 'steps', 'corridor', 'bus_stop', 'platform', 'street_lamp', 'crossing', 'traffic_signals', 'stop', 'give_way', 'turning_circle', 'roundabout'], 
+                    'fclass': ['primary', 'secondary', 'tertiary', 'residential', 'service', 'track', 'path', 'unclassified_road', 'motorway', 'trunk', 'motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link', 'footway', 'cycleway', 'steps', 'pedestrian', 'living_street', 'roundabout'],
+                    'النوع': ['طريق', 'مسلك', 'ممر', 'زنقة', 'شارع', 'جسر', 'محور دوراني', 'مدارة']
+                }, 
+                geomCheck: ["LineString", "MultiLineString"]
+            }, // <--- فاصلة هنا
+
+            // --- أضف باقي تعريفات الطبقات هنا بنفس الطريقة ---
+            // مثال:
+            { 
+                name: "توزيع الماء والكهرباء", 
+                keys: directMatchPropKeys, 
+                keywords: {
+                    'power': ['substation', 'transformer', 'plant', 'generator', 'line', 'cable'], 
+                    'man_made': ['water_tower', 'reservoir', 'pipeline', 'water_works', 'pump'], 
+                    'utility':['water', 'power', 'electricity'], 
+                    'النوع': ['ماء', 'كهرباء', 'توزيع', 'محول', 'خزان', 'مكتب توزيع', 'محطة تحويل']
+                } 
+            } // <--- لا توجد فاصلة هنا إذا كان هذا هو العنصر الأخير في المصفوفة
+            
+        ]; // <--- نهاية المصفوفة (قوس مربع مغلق)
 
         for (const check of layerChecks) {
             result = checkLayer(check.name, check.keys, check.keywords, true);
