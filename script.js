@@ -1,4 +1,4 @@
-// ====================================================================================
+ };// ====================================================================================
 // GIS SCRIPT FOR ATTAOUIA - V5.4 (Layout Reorganization)
 // ====================================================================================
 
@@ -37,7 +37,50 @@ document.addEventListener('DOMContentLoaded', function() {
         'mosqueDome': { type: 'svg', path: 'M12 2C8.69 2 6 4.69 6 8c0 1.81.72 3.44 1.88 4.62L12 22l4.12-9.38C17.28 11.44 18 9.81 18 8c0-3.31-2.69-6-6-6zm0 2c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4 1.79-4 4-4z', viewBox: '0 0 24 24', defaultColor: '#B8860B', defaultSize: 26 },
         'lightningBolt': { type: 'svg', path: 'M7 2v11h3v9l7-12h-4l4-8z', viewBox: '0 0 24 24', defaultColor: '#FFFF00', defaultSize: 18 },
         'car': { type: 'svg', path: 'M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11C5.84 5 5.28 5.42 5.08 6.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5S18.33 16 17.5 16zM5 11l1.5-4.5h11L19 11H5z', viewBox: '0 0 24 24', defaultColor: '#FFFF00', defaultSize: 22 }
+     };
+       // ===================================================================
+    // ==  الآن يجب أن يأتي تعريف دالة createFeatureIcon هنا  ==
+    // ===================================================================
+    function createFeatureIcon(styleSettings = {}) {
+        if (!styleSettings) {
+            styleSettings = { symbol: 'pin', color: '#CCCCCC', size: 18 };
+        }
+        if (styleSettings.type === 'text') {
+            const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${styleSettings.color || 'black'}; background-color:transparent; border:none; padding:0px; text-align:center; white-space: nowrap;">${styleSettings.content || '?'}</div>`;
+            let iconWidth = (styleSettings.size || 16) * (String(styleSettings.content || '?').length * 0.6) + 8;
+            if (String(styleSettings.content).includes('🚦') || String(styleSettings.content).includes('🛑') || String(styleSettings.content).includes('⚠️') || String(styleSettings.content).includes('⛔') || String(styleSettings.content).includes('🅿️')) iconWidth = (styleSettings.size || 16) + 8;
+            let iconHeight = (styleSettings.size || 16) + 8;
+            return L.divIcon({
+                html: divHtml,
+                className: 'custom-text-div-icon',
+                iconSize: [iconWidth, iconHeight],
+                iconAnchor: [iconWidth / 2, iconHeight]
+            });
+        }
 
+        const symbolKey = styleSettings.symbol;
+        const symbol = symbolLibrary[symbolKey];
+        if (!symbol || symbol.type !== 'svg') {
+            console.warn(`Symbol '${symbolKey}' not found or not SVG in symbolLibrary. Using default pin.`);
+            return createFeatureIcon({ symbol: 'pin', color: styleSettings.color || '#CCCCCC', size: styleSettings.size || 18 });
+        }
+
+        const color = styleSettings.color || symbol.defaultColor;
+        const size = styleSettings.size || symbol.defaultSize;
+        const path = styleSettings.path || symbol.path; 
+        const viewBox = styleSettings.viewBox || symbol.viewBox; 
+
+        const svgHtml = `<svg width="${size}" height="${size}" viewBox="${viewBox}" fill="${color}" xmlns="http://www.w3.org/2000/svg"><path d="${path}"/></svg>`;
+        return L.divIcon({
+            html: svgHtml,
+            className: 'custom-svg-div-icon',
+            iconSize: [size, size],
+            iconAnchor: styleSettings.anchor || [size / 2, size] 
+        });
+    }
+    // ===================================================================
+    // == نهاية تعريف دالة createFeatureIcon ==
+    // ===================================================================     
 // --- بداية مكتبة الرموز والأنماط ---              
 const detailedStyles = {
     "الصحة والمجال الاجتماعي": {
