@@ -351,6 +351,23 @@
         /* --- نهاية CSS للنافذة المنبثقة --- */
 
     </style>
+<head>
+    <!-- ... other head elements ... -->
+    <style>
+        #layers-control-container .leaflet-control-layers-list {
+            max-height: 75vh; /* أو أي ارتفاع تراه مناسباً */
+            overflow-y: auto;
+            overflow-x: hidden; /* لمنع التمرير الأفقي إذا كانت الأسماء طويلة جدا */
+        }
+        /* (اختياري) لضمان أن عنوان "الطبقات الرئيسية" لا يتم تمريره */
+        #layers-control-container .leaflet-control-layers-title {
+            position: sticky;
+            top: 0;
+            background-color: white; /* أو لون خلفية لوحة التحكم */
+            z-index: 10;
+            padding-bottom: 5px; /* مسافة صغيرة قبل بدء التمرير */
+        }
+    </style>
 </head>
 <body>
     <header class="main-header">
