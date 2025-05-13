@@ -6,22 +6,21 @@
 document.addEventListener('DOMContentLoaded', function() {
 
         // --- الحصول على عناصر DOM الرئيسية ---
-    var mapElement = document.getElementById('map'); // مثال إذا كنت تستخدمه لاحقًا
+    var mapElement = document.getElementById('map');
     var contactModal = document.getElementById("contactModal");
     var btnContact = document.getElementById("contactBtnHeader");
-    var spanClose = document.getElementsByClassName("close-button")[0]; // يفترض أنه الأول، وقد يكون هذا غير دقيق إذا كان لديك عدة أزرار إغلاق بنفس الكلاس
+    var spanClose = document.getElementsByClassName("close-button")[0];
 
     // --- الحصول على عناصر DOM الخاصة بالتعليقات ---
     var showCommentsBtn = document.getElementById('showCommentsBtn');
     var commentsModal = document.getElementById('commentsModal');
-    // انتبه: زر الإغلاق الخاص بنافذة التعليقات لديه ID فريد أعطيناه إياه
-    var closeCommentsModalBtn = document.getElementById('closeCommentsModalBtn'); // وليس getElementsByClassName
+    var closeCommentsModalBtn = document.getElementById('closeCommentsModalBtn');
     var commentForm = document.getElementById('commentForm');
     var commentsListDiv = document.getElementById('comments-list');
 
     // 1. تهيئة الخريطة
     var map = L.map('map', {
-        zoomControl: false // تعطيل عنصر التحكم بالتكبير الافتراضي، سنضيفه يدويًا
+        zoomControl: false
     }).setView([31.83, -7.31], 11);
 
     // 2. إضافة طبقة أساس (TileLayer)
@@ -46,9 +45,8 @@ document.addEventListener('DOMContentLoaded', function() {
             styleSettings = { symbol: 'pin', color: '#CCCCCC', size: 18 };
         }
         if (styleSettings.type === 'text') {
-// --- داخل دالة createFeatureIcon، داخل if (styleSettings.type === 'text') ---
-
-const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${styleSettings.color || 'black'}; background-color:transparent; border:none; padding:0px; text-align:center; white-space: nowrap;">${styleSettings.content || '?'}</div>`;            let iconWidth = (styleSettings.size || 16) * (String(styleSettings.content || '?').length * 0.6) + 8;
+            const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${styleSettings.color || 'black'}; background-color:transparent; border:none; padding:0px; text-align:center; white-space: nowrap;">${styleSettings.content || '?'}</div>`;
+            let iconWidth = (styleSettings.size || 16) * (String(styleSettings.content || '?').length * 0.6) + 8;
             if (String(styleSettings.content).includes('🚦') || String(styleSettings.content).includes('🛑') || String(styleSettings.content).includes('⚠️') || String(styleSettings.content).includes('⛔') || String(styleSettings.content).includes('🅿️')) iconWidth = (styleSettings.size || 16) + 8;
             let iconHeight = (styleSettings.size || 16) + 8;
             return L.divIcon({
@@ -100,7 +98,7 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             },
             defaultPointStyle: { symbol: 'pin', color: '#B0E0E6', size: 18 }
         },
-        "طبقة المباني": {
+        "طبقة المباني": { // This is one of the problematic layers
             displayName: "طبقة المباني",
             subcategories: {
                 "خدماتي": { displayName: "خدماتي", styleConfig: { fillColor: "#BDB76B", color: "#8F8F8C", weight:1, fillOpacity: 0.6 } },
@@ -109,8 +107,11 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             },
             defaultLinePolyStyle: { fillColor: '#C0C0C0', color: '#959595', weight: 1, fillOpacity: 0.5 }
         },
-        "محطات الوقود": { displayName: "محطات الوقود", defaultPointStyle: { symbol: 'pin', color: '#FF0000', size: 20 } },
-        "التعليم والتكوين وتشغيل الكفاءات": {
+        "محطات الوقود": { // This is one of the problematic layers
+            displayName: "محطات الوقود",
+            defaultPointStyle: { symbol: 'pin', color: '#FF0000', size: 20 }
+        },
+        "التعليم والتكوين وتشغيل الكفاءات": { // This is one of the problematic layers
             displayName: "التعليم والتكوين",
             subcategories: {
                 "إدارة تربوية": { displayName: "إدارة تربوية", style: { symbol: 'building', color: '#483D8B', size: 20 } },
@@ -160,7 +161,7 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             },
             defaultPointStyle: { symbol: 'pin', color: '#FFA500', size: 18 }
         },
-        "الامن والوقاية المدنية": {
+        "الامن والوقاية المدنية": { // This is one of the problematic layers
             displayName: "الأمن والوقاية المدنية",
             subcategories: {
                 "مركز شرطة": { displayName: "مركز شرطة", style: { symbol: 'building', color: '#00008B', size: 20 } },
@@ -182,9 +183,15 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             },
             defaultPointStyle: { symbol: 'pin', color: '#20B2AA', size: 18 }
         },
-        "المرافق التجارية": { displayName: "المرافق التجارية", defaultPointStyle: { symbol: 'circle', color: '#8B4513', size: 18 } },
-        "الادارات الترابية": { displayName: "الإدارات الترابية", defaultPointStyle: { symbol: 'building', color: '#778899', size: 22 } },
-        "المرافق الرياضية والترفيهية": {
+        "المرافق التجارية": {
+            displayName: "المرافق التجارية",
+            defaultPointStyle: { symbol: 'circle', color: '#8B4513', size: 18 }
+        },
+        "الادارات الترابية": { // This is one of the problematic layers
+            displayName: "الإدارات الترابية",
+            defaultPointStyle: { symbol: 'building', color: '#778899', size: 22 }
+        },
+        "المرافق الرياضية والترفيهية": { // This is one of the problematic layers
             displayName: "المرافق الرياضية والترفيهية",
             subcategories: {
                 "ثقافي وترفيهي": { displayName: "ثقافي وترفيهي", style: { symbol: 'square', color: '#FF69B4', size: 18 } },
@@ -213,7 +220,7 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             },
             defaultLinePolyStyle: { color: "#BEBEBE", weight: 1.5, opacity: 0.7 }
         },
-        "المناطق الخضراء والزراعة": {
+        "المناطق الخضراء والزراعة": { // This is one of the problematic layers
             displayName: "المناطق الخضراء والزراعة",
             subcategories: {
                 "المغروسات": { displayName: "المغروسات", styleConfig: { fillColor: "#228B22", color: "#006400", weight: 1, fillOpacity: 0.6 } },
@@ -237,14 +244,14 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             },
             defaultLinePolyStyle: { fillColor: "#F0F0F0", color: "#888888", weight: 1, fillOpacity: 0.6 }
         },
-        "حدود إدارية العطاوية": {
+        "حدود إدارية العطاوية": { // This is one of the problematic layers
             displayName: "حدود إدارية العطاوية",
             defaultLinePolyStyle: { color: "#FF00FF", weight: 3.5, opacity: 0.9, fillOpacity: 0 }
         },
         "طبقة غير مصنفة": {
             displayName: "طبقة غير مصنفة",
             defaultPointStyle: { symbol: 'pin', color: '#7f7f7f', size: 16 },
-            defaultLinePolyStyle: { color: "#999999", weight: 1.5, dashArray: '3,3', opacity: 0.6 }
+            defaultLinePolyStyle: { color: "#999999", weight: 1.5, dashArray: '3,3', opacity: 0.6, fillOpacity: 0.2 } // Added slight fill for visibility
         }
     };
     Object.keys(detailedStyles).forEach(mainLayerKey => {
@@ -267,42 +274,143 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
 
     function getLayerNameFromProperties(properties) {
         const knownMainLayers = Object.keys(detailedStyles).filter(k => k !== "طبقة غير مصنفة");
-        const directPropsToCheck = ['MainCategory', 'LayerGroup', 'اسم_الطبقة_الرئيسي', 'layer_name_principal', 'layer', 'LAYER', 'nom_couche'];
+        const featureId = properties.OBJECTID || properties.id || properties.ID || 'UnknownID'; // For logging
 
-        if (properties.fclass && typeof properties.fclass === 'string' && properties.fclass.trim() !== "") {
-            return "شبكة الطرق";
+        // Helper function to check for a layer name in various common properties or path
+        const checkLayer = (targetLayerName, propKeysForExactMatch, keywordMap = {}, pathCheck = true) => {
+            // 1. Check direct property exact matches
+            for (const key of propKeysForExactMatch) {
+                if (properties[key] && String(properties[key]).trim() === targetLayerName) {
+                    console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via exact property '${key}'='${properties[key]}'`);
+                    return targetLayerName;
+                }
+            }
+
+            // 2. Check Path for the exact layer name as a segment or in jarmi/LayerName structure
+            if (pathCheck && properties.Path && typeof properties.Path === 'string') {
+                const pathSegments = properties.Path.split(/[\\\/]/);
+                if (pathSegments.some(segment => String(segment).trim() === targetLayerName)) {
+                    console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via path segment.`);
+                    return targetLayerName;
+                }
+                const jarmiIndex = pathSegments.findIndex(part => String(part).toLowerCase() === 'jarmi');
+                if (jarmiIndex !== -1 && pathSegments.length > jarmiIndex + 1) {
+                    if (String(pathSegments[jarmiIndex + 1]).trim() === targetLayerName) {
+                        console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via jarmi/path structure.`);
+                        return targetLayerName;
+                    }
+                }
+            }
+            
+            // 3. Check for keywords in specified properties
+            // keywordMap = { 'propertyName': ['keyword1', 'keyword2'], ... }
+            for (const propName in keywordMap) {
+                if (properties[propName]) {
+                    const propValue = String(properties[propName]).toLowerCase().trim();
+                    for (const keyword of keywordMap[propName]) {
+                        if (propValue.includes(keyword.toLowerCase())) {
+                            // Special condition for boundaries (must be line/poly)
+                            if (targetLayerName === "حدود إدارية العطاوية") {
+                                if (properties.geometry && (properties.geometry.type.includes("LineString") || properties.geometry.type.includes("Polygon"))) {
+                                     console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via keyword '${keyword}' in property '${propName}' (Geometry check passed).`);
+                                    return targetLayerName;
+                                }
+                            } else {
+                                console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via keyword '${keyword}' in property '${propName}'.`);
+                                return targetLayerName;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        };
+
+        const directMatchPropKeys = ['MainCategory', 'LayerGroup', 'اسم_الطبقة_الرئيسي', 'layer_name_principal', 'layer', 'LAYER', 'nom_couche', 'Name', 'NAME', 'اسم_الطبقة'];
+        let result;
+
+        // --- Define checks for each problematic layer (and others) ---
+        const layerChecks = [
+            { name: "حدود إدارية العطاوية", keys: directMatchPropKeys, keywords: { 
+                'type': ["administrative", "boundary"], 'TYPE': ["administrative", "boundary"], 'fclass': ["administrative", "boundary"], 'الوصف': ["حدود إدارية", "حدود"], 'Name': ["حدود"], 'LAYER': ["حدود"]
+            }},
+            { name: "المناطق الخضراء والزراعة", keys: directMatchPropKeys, keywords: {
+                'type': ["green_area", "park", "farmland", "agriculture", "garden"], 'fclass': ["park", "farmland", "forest", "grass", "meadow"], 'landuse': ["farmland", "forest", "grass", "meadow", "orchard", "vineyard", "greenfield"], 'النوع': ["زراعة", "خضراء", "حديقة", "منتزه"]
+            }},
+            { name: "طبقة المباني", keys: directMatchPropKeys, keywords: {
+                'building': ["yes", "house", "residential", "commercial", "industrial", "service"], // Check if 'building' property exists and has common values
+                'fclass': ["building"], 'type': ["building", "construction"], 'النوع': ["مبنى", "بناية"]
+            }},
+            { name: "محطات الوقود", keys: directMatchPropKeys, keywords: {
+                'amenity': ["fuel"], 'shop': ["fuel"], 'النوع': ["وقود", "محطة بنزين"], 'name': ["وقود", "بنزين", "غاز"]
+            }},
+            { name: "التعليم والتكوين وتشغيل الكفاءات", keys: directMatchPropKeys, keywords: {
+                'amenity': ["school", "college", "university", "kindergarten", "training"], 'building': ["school", "college", "university", "kindergarten"], 'النوع': ["تعليم", "مدرسة", "جامعة", "معهد", "تكوين", "روضة"], 'categorie': ["education", "enseignement"]
+            }},
+            { name: "الامن والوقاية المدنية", keys: directMatchPropKeys, keywords: {
+                'amenity': ["police", "fire_station", "emergency_service"], 'building': ["police", "fire_station"], 'النوع': ["امن", "شرطة", "وقاية مدنية", "اطفاء", "طوارئ"], 'emergency': ["yes", "designated"]
+            }},
+            { name: "الادارات الترابية", keys: directMatchPropKeys, keywords: {
+                'amenity': ["townhall", "public_building", "government"], 'office': ["government", "administrative"], 'النوع': ["ادارة", "ترابية", "جماعة", "عمالة", "قيادة", "بلدية"]
+            }},
+            { name: "المرافق الرياضية والترفيهية", keys: directMatchPropKeys, keywords: {
+                'leisure': ["pitch", "stadium", "sports_centre", "playground", "park", "garden", "track"], 'sport': ["soccer", "basketball", "tennis", "swimming"], 'amenity': ["theatre", "cinema", "community_centre"], 'النوع': ["رياضة", "ترفيه", "ملعب", "مسبح", "ثقافي", "مسرح"]
+            }},
+            // Add other layers that were working fine if needed, or rely on generic checks below
+            { name: "شبكة الطرق", keys: directMatchPropKeys.concat(['fclass']), keywords: { 'highway': ['residential', 'primary', 'secondary', 'tertiary', 'unclassified', 'service', 'track', 'path'], 'fclass': ['primary', 'secondary', 'tertiary', 'residential', 'service', 'track', 'path', 'unclassified_road'] } }, // fclass is also a direct match key here if value is "شبكة الطرق"
+            { name: "الصحة والمجال الاجتماعي", keys: directMatchPropKeys, keywords: {'amenity': ['hospital', 'clinic', 'doctors', 'dentist', 'pharmacy', 'social_facility'], 'النوع': ['صحة', 'مستشفى', 'اجتماعي']} },
+            { name: "توزيع الماء والكهرباء", keys: directMatchPropKeys, keywords: {'power': ['substation', 'transformer', 'plant'], 'man_made': ['water_tower', 'reservoir', 'pipeline'], 'النوع': ['ماء', 'كهرباء', 'توزيع']} },
+            { name: "التشوير الطرقي", keys: directMatchPropKeys, keywords: {'highway': ['traffic_signals', 'stop', 'give_way'], 'traffic_sign': ['*'], 'النوع': ['تشوير', 'علامة']} }, // * as a wildcard for any value in traffic_sign
+            { name: "الخدمات الدينية", keys: directMatchPropKeys, keywords: {'amenity': ['place_of_worship'], 'religion': ['muslim', 'christian', 'jewish'], 'building': ['mosque', 'church', 'synagogue'], 'النوع': ['ديني', 'مسجد', 'كنيسة', 'مصلى']} },
+            { name: "النقل", keys: directMatchPropKeys, keywords: {'amenity': ['bus_station', 'taxi_rank', 'parking'], 'public_transport': ['station', 'stop_position'], 'النوع': ['نقل', 'محطة', 'موقف']} },
+            { name: "المالية والجبايات", keys: directMatchPropKeys, keywords: {'amenity': ['bank', 'atm', 'post_office'], 'office': ['insurance', 'tax'], 'النوع': ['مالية', 'بنك', 'بريد', 'ضرائب']} },
+            { name: "المرافق التجارية", keys: directMatchPropKeys, keywords: {'shop': ['*'], 'amenity':['marketplace', 'restaurant', 'cafe', 'fast_food'], 'النوع': ['تجاري', 'سوق', 'متجر']} },
+            { name: "أحياء", keys: directMatchPropKeys, keywords: {'landuse': ['residential'], 'place': ['neighbourhood', 'suburb', 'quarter'], 'النوع': ['حي سكني', 'حي']} }
+        ];
+
+        for (const check of layerChecks) {
+            result = checkLayer(check.name, check.keys, check.keywords, true);
+            if (result) return result;
         }
-        const roadLayerNames = ['RESEAU_ROUTIER', 'شبكة الطرق', 'Roads', 'Voirie', 'ROUTES'];
-        if (properties.LAYER && roadLayerNames.includes(String(properties.LAYER).trim().toUpperCase())) {
-            return "شبكة الطرق";
+        
+        // Specific check for fclass being "building" but not caught by keyword "building" for "طبقة المباني"
+        if (properties.fclass && String(properties.fclass).toLowerCase().trim() === "building") {
+            console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched 'طبقة المباني' via fclass='building'.`);
+            return "طبقة المباني";
         }
-        if (properties.layer && roadLayerNames.includes(String(properties.layer).trim().toUpperCase())) {
-            return "شبكة الطرق";
-        }
-         if (properties.اسم_الطبقة && roadLayerNames.includes(String(properties.اسم_الطبقة).trim())) {
-            return "شبكة الطرق";
+        // Specific check for property "building" having any non-empty value for "طبقة المباني"
+        if (properties.hasOwnProperty('building') && properties.building && String(properties.building).trim() !== "") {
+            console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched 'طبقة المباني' via existing 'building' property.`);
+            return "طبقة المباني";
         }
 
-        for (const prop of directPropsToCheck) {
-            if (properties[prop]) {
-                let propValue = String(properties[prop]).trim();
-                if (propValue === "توزيع الماء والكهرباءة") propValue = "توزيع الماء والكهرباء";
-                if (propValue === "التشويرالطرقي") propValue = "التشوير الطرقي";
-                if (knownMainLayers.includes(propValue)) return propValue;
+
+        // Fallback for 'شبكة الطرق' if not caught by keywords but has a known fclass (and not admin)
+        if (properties.fclass && typeof properties.fclass === 'string') {
+            const fclassLower = String(properties.fclass).trim().toLowerCase();
+            const roadFclasses = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'unclassified', 'residential', 'living_street', 'service', 'pedestrian', 'track', 'bus_guideway', 'escape', 'raceway', 'road', 'footway', 'cycleway', 'steps', 'path', 'bridleway', 'motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link'];
+            if (roadFclasses.includes(fclassLower) && !(fclassLower === 'administrative' || fclassLower.startsWith('boundary_administrative'))) {
+                 console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched 'شبكة الطرق' via fclass='${fclassLower}'.`);
+                return "شبكة الطرق";
             }
         }
-
-        const pathString = properties.Path;
-        if (pathString && typeof pathString === 'string' && pathString.trim() !== "") {
-            const parts = pathString.split(/[\\\/]/);
+        
+        // Typo corrections in Path as a final generic check
+        if (properties.Path && typeof properties.Path === 'string') {
+            const parts = properties.Path.split(/[\\\/]/);
             const jarmiIndex = parts.findIndex(part => String(part).toLowerCase() === 'jarmi');
             if (jarmiIndex !== -1 && parts.length > jarmiIndex + 1) {
                 let potentialName = String(parts[jarmiIndex + 1]).trim();
                 if (potentialName === "توزيع الماء والكهرباءة") potentialName = "توزيع الماء والكهرباء";
                 if (potentialName === "التشويرالطرقي") potentialName = "التشوير الطرقي";
-                if (knownMainLayers.includes(potentialName)) return potentialName;
+                if (knownMainLayers.includes(potentialName)) {
+                    console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${potentialName}' via jarmi/path (with typo correction if any).`);
+                    return potentialName;
+                }
             }
         }
+
+        console.warn(`[UNCLASSIFIED_FEATURE_PROPS] Feature ID ${featureId} fell into 'طبقة غير مصنفة'. Properties:`, JSON.parse(JSON.stringify(properties)));
         return "طبقة غير مصنفة";
     }
 
@@ -314,7 +422,7 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
         const mainLayerConfig = detailedStyles[mainLayerName];
         let subCategoryDisplayName = "";
         if (mainLayerConfig && mainLayerConfig.subcategories) {
-            const subCategoryPropertyCandidates = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'fclass', 'TYPE_VOIE', 'road_type', 'classification'];
+            const subCategoryPropertyCandidates = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'fclass', 'TYPE_VOIE', 'road_type', 'classification', 'amenity', 'shop', 'leisure', 'building']; // Added more candidates
             for (const propKey of subCategoryPropertyCandidates) {
                 if (properties[propKey]) {
                     const propValue = String(properties[propKey]).trim();
@@ -331,10 +439,12 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
 
         for (const key in properties) {
             if (properties.hasOwnProperty(key) &&
-                !['Path', 'derived_main_layer', 'MainCategory', 'LayerGroup', 'OBJECTID', 'X', 'Y', 'Z', 'id',
+                !['Path', 'derived_main_layer', 'MainCategory', 'LayerGroup', 'OBJECTID', 'X', 'Y', 'Z', 'id', 'ID',
                  'Shape_Length', 'Shape_Area', 'OBJECTID_1', 'layer_name_principal', 'LAYER', 'fclass',
-                 'الاسم', 'name', 'Nom', 'NAME',
-                 'النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'TYPE_VOIE', 'road_type', 'classification'
+                 'الاسم', 'name', 'Nom', 'NAME', 'nom',
+                 'النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'TYPE_VOIE', 'road_type', 'classification',
+                 'amenity', 'shop', 'leisure', 'building', 'power', 'man_made', 'highway', 'traffic_sign', 'religion',
+                 'public_transport', 'office', 'landuse', 'place', 'emergency', 'sport' // Exclude more common classification keys
                 ].includes(key) &&
                 properties[key] !== null && String(properties[key]).trim() !== "" && String(properties[key]).trim() !== " ") {
                 let displayKey = key.replace(/_/g, ' ');
@@ -360,10 +470,20 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
             const classifiedNamesFound = new Set();
             const featuresByMainLayer = {};
 
-            data.features.forEach(feature => {
+            data.features.forEach((feature, index) => {
                 if (!feature.properties) feature.properties = {};
+                 // Ensure a unique ID for logging if common ones are missing
+                if (!feature.properties.OBJECTID && !feature.properties.id && !feature.properties.ID) {
+                    feature.properties.temp_id_for_debug = `feature_${index}`;
+                }
+                if (feature.geometry && !feature.properties.geometry) { // Make geometry type available in properties for classification
+                    feature.properties.geometry = { type: feature.geometry.type };
+                }
+
+
                 const mainLayerName = getLayerNameFromProperties(feature.properties);
                 feature.properties.derived_main_layer = mainLayerName;
+
 
                 if (mainLayerName === "طبقة غير مصنفة") {
                     unclassifiedCount++;
@@ -377,7 +497,16 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
 
             console.log(`Total features: ${data.features.length}`);
             console.log(`Number of unclassified features: ${unclassifiedCount}`);
-            console.log("Classified layer names found in data:", Array.from(classifiedNamesFound));
+            console.log("Classified layer names found in data (these should have specific styles):", Array.from(classifiedNamesFound));
+            
+            const expectedLayers = Object.keys(detailedStyles).filter(k => k !== "طبقة غير مصنفة");
+            expectedLayers.forEach(expLayer => {
+                if (!classifiedNamesFound.has(expLayer) && featuresByMainLayer[expLayer] === undefined) {
+                    // Check if any feature *should* have been this layer based on some common default property
+                    // This is hard to do without knowing the data, but the logs from getLayerNameFromProperties are key.
+                }
+            });
+
 
             for (const mainLayerName in featuresByMainLayer) {
                 if (featuresByMainLayer.hasOwnProperty(mainLayerName)) {
@@ -386,7 +515,7 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
 
                     const geoJsonLayerGroup = L.geoJSON(null, {
                         pointToLayer: (feature, latlng) => {
-                            const subCategoryPropertyCandidates = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'classification'];
+                            const subCategoryPropertyCandidates = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'classification', 'amenity', 'shop', 'leisure', 'building'];
                             let subCategoryName = "_default_sub_style";
 
                             for (const propKey of subCategoryPropertyCandidates) {
@@ -398,77 +527,41 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
                                     }
                                 }
                             }
-                            if (subCategoryName === "_default_sub_style" && !(mainLayerConfig.subcategories && mainLayerConfig.subcategories["_default_sub_style"]?.style)) {
-                                 const foundPropValue = subCategoryPropertyCandidates.map(k => feature.properties[k]).find(v => v);
-                                 if (foundPropValue) {
-                                    console.warn(`Point feature in layer "${mainLayerName}" with sub-category value "${foundPropValue}" (from keys: ${subCategoryPropertyCandidates.join(', ')}) does not have a matching subcategory point style. Using default layer style. Feature properties:`, feature.properties);
-                                 }
-                                 return L.marker(latlng, { icon: createFeatureIcon(mainLayerConfig.defaultPointStyle || detailedStyles["طبقة غير مصنفة"].defaultPointStyle) });
+                            
+                            let styleInfo;
+                            if (mainLayerConfig.subcategories && mainLayerConfig.subcategories[subCategoryName]?.style) {
+                                styleInfo = mainLayerConfig.subcategories[subCategoryName].style;
+                            } else {
+                                styleInfo = mainLayerConfig.defaultPointStyle || detailedStyles["طبقة غير مصنفة"].defaultPointStyle;
                             }
-
-                            let styleInfo = (mainLayerConfig.subcategories && mainLayerConfig.subcategories[subCategoryName]?.style) ||
-                                            mainLayerConfig.defaultPointStyle ||
-                                            detailedStyles["طبقة غير مصنفة"].defaultPointStyle;
                             return L.marker(latlng, { icon: createFeatureIcon(styleInfo) });
                         },
                         style: (feature) => {
                             const currentMainLayerName = feature.properties.derived_main_layer;
                             const currentMainLayerConfig = detailedStyles[currentMainLayerName] || detailedStyles["طبقة غير مصنفة"];
 
-                            if (currentMainLayerName === "شبكة الطرق") {
-                                const roadTypePropertyKeys = ['النوع', 'نوع_الطريق', 'road_type', 'fclass', 'TYPE_VOIE', 'classification'];
-                                let subCategoryName = "_default_sub_style";
+                            const subCategoryPropertyCandidates = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'classification', 'fclass', 'amenity', 'shop', 'leisure', 'building', 'landuse'];
+                            let subCategoryName = "_default_sub_style";
 
-                                for (const key of roadTypePropertyKeys) {
-                                    if (feature.properties[key]) {
-                                        const typeValue = String(feature.properties[key]).trim();
-                                        if (currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories[typeValue]?.styleConfig) {
-                                            subCategoryName = typeValue;
+                            if (currentMainLayerConfig.subcategories) {
+                                for (const propKey of subCategoryPropertyCandidates) {
+                                    if (feature.properties[propKey]) {
+                                        const propValue = String(feature.properties[propKey]).trim();
+                                        if (currentMainLayerConfig.subcategories[propValue]?.styleConfig) {
+                                            subCategoryName = propValue;
                                             break;
                                         }
                                     }
                                 }
-                                if (subCategoryName === "_default_sub_style" && !(currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories["_default_sub_style"]?.styleConfig)) {
-                                    const foundPropValue = roadTypePropertyKeys.map(k => feature.properties[k]).find(v => v);
-                                    if (foundPropValue) {
-                                       console.warn(`Road type value '${foundPropValue}' (from keys: ${roadTypePropertyKeys.join(', ')}) for feature in "شبكة الطرق" does not have a matching subcategory styleConfig. Using default layer style. Feature properties:`, feature.properties);
-                                    }
-                                    return currentMainLayerConfig.defaultLinePolyStyle || detailedStyles["طبقة غير مصنفة"].defaultLinePolyStyle;
-                                }
-                                return (currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories[subCategoryName]?.styleConfig) ||
-                                       currentMainLayerConfig.defaultLinePolyStyle ||
-                                       detailedStyles["طبقة غير مصنفة"].defaultLinePolyStyle;
                             }
-
-                            const subCategoryPropertyCandidates = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'classification'];
-                            let subCategoryName = "_default_sub_style";
-
-                            for (const propKey of subCategoryPropertyCandidates) {
-                                if (feature.properties[propKey]) {
-                                    const propValue = String(feature.properties[propKey]).trim();
-                                     if (currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories[propValue]?.styleConfig) {
-                                        subCategoryName = propValue;
-                                        break;
-                                    }
-                                }
+                            
+                            let styleConfigToUse;
+                            if (currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories[subCategoryName]?.styleConfig) {
+                                styleConfigToUse = currentMainLayerConfig.subcategories[subCategoryName].styleConfig;
+                            } else {
+                                styleConfigToUse = currentMainLayerConfig.defaultLinePolyStyle || detailedStyles["طبقة غير مصنفة"].defaultLinePolyStyle;
                             }
-                            if (subCategoryName === "_default_sub_style" && !(currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories["_default_sub_style"]?.styleConfig)) {
-                                const foundPropValue = subCategoryPropertyCandidates.map(k => feature.properties[k]).find(v => v);
-                                 if (foundPropValue) {
-                                    console.warn(`Line/Polygon feature in layer "${currentMainLayerName}" with sub-category value "${foundPropValue}" (from keys: ${subCategoryPropertyCandidates.join(', ')}) does not have a matching subcategory line/poly styleConfig. Using default layer style. Feature properties:`, feature.properties);
-                                 }
-                                return currentMainLayerConfig.defaultLinePolyStyle || detailedStyles["طبقة غير مصنفة"].defaultLinePolyStyle;
-                            }
-
-                            if (currentMainLayerName === "أحياء" && currentMainLayerConfig.subcategories) {
-                                const densityRangeKey = feature.properties. نطاق_الكثافة || feature.properties.density_range;
-                                if (densityRangeKey && currentMainLayerConfig.subcategories[densityRangeKey]?.styleConfig) {
-                                    return currentMainLayerConfig.subcategories[densityRangeKey].styleConfig;
-                                }
-                            }
-                            return (currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories[subCategoryName]?.styleConfig) ||
-                                   currentMainLayerConfig.defaultLinePolyStyle ||
-                                   detailedStyles["طبقة غير مصنفة"].defaultLinePolyStyle;
+                            return styleConfigToUse;
                         },
                         onEachFeature: (feature, layer) => {
                             layer.bindPopup(createPopupContent(feature.properties, feature.properties.derived_main_layer));
@@ -480,7 +573,7 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
                     const displayNameForControl = mainLayerConfig.displayName || mainLayerName;
                     layerControlEntries[displayNameForControl] = geoJsonLayerGroup;
 
-                    // MODIFIED SECTION: Added "طبقة غير مصنفة" to the list of layers shown by default
+                    // Layers to show by default
                     if (["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني", "طبقة غير مصنفة"].includes(mainLayerName) ||
                         ["حدود إدارية العطاوية", "شبكة الطرق", "طبقة المباني", "طبقة غير مصنفة"].includes(displayNameForControl) ) {
                         geoJsonLayerGroup.addTo(map);
@@ -495,14 +588,16 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
                 const layersControl = L.control.layers(null, layerControlEntries, {
                     collapsed: false,
                 });
-                layersControl.addTo(map);
+                layersControl.addTo(map); // Add to map first
 
                 const layersControlElement = layersControl.getContainer();
                 if (layersControlElement) {
+                     // Move it to the custom container
                     layersControlContainer.appendChild(layersControlElement);
                 }
-                styleLayerControl();
+                styleLayerControl(); // Style it after moving
             }
+
 
             if (leftControlsArea) {
                 const zoomControl = L.control.zoom({ position: 'topleft' });
@@ -521,12 +616,11 @@ const divHtml = `<div style="font-size:${styleSettings.size || 16}px; color:${st
 // == كود إخراج الخريطة إلى PDF (النسخة المنقحة والموحدة) ==
 // =============================================================
     const exportButton = document.getElementById('exportPdfButton');
-    const legendElement = document.getElementById('custom-legend');    
-if (exportButton && mapElement && legendElement) {
+    const legendElementForPdf = document.getElementById('custom-legend'); // Ensure this ID is correct for the legend used in PDF   
+if (exportButton && mapElement && legendElementForPdf) { // Use legendElementForPdf here
     console.log('PDF Export Setup: Elements found, adding listener.');
     exportButton.addEventListener('click', function () {
         console.log('PDF Export Action: Button CLICKED!');
-        // التحقق من وجود المكتبات قبل المتابعة
         if (typeof html2canvas === 'undefined') {
             console.error('PDF Export Error: html2canvas library is not loaded!');
             alert('خطأ: مكتبة html2canvas غير محملة. لا يمكن تصدير PDF.');
@@ -538,171 +632,94 @@ if (exportButton && mapElement && legendElement) {
             return;
         }
 
-        // رسالة للمستخدم وتغيير حالة الزر
         exportButton.disabled = true;
-        const originalButtonHtml = exportButton.innerHTML; // حفظ محتوى الزر الأصلي
+        const originalButtonHtml = exportButton.innerHTML;
         exportButton.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-loader-2 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
             جارٍ الإعداد...
         `;
 
-        // إخفاء عناصر التحكم مؤقتًا إذا أردت (اختياري)
-        const zoomControlElement = mapElement.querySelector('.leaflet-control-zoom');
-        const layersControlElement = document.querySelector('#layers-control-container .leaflet-control-layers'); // أو أي محدد آخر لعنصر التحكم بالطبقات
+        const zoomControlElement = map.getContainer().querySelector('.leaflet-control-zoom');
+        const layersControlElementFromContainer = document.querySelector('#layers-control-container .leaflet-control-layers');
+        const directLayersControlElement = map.getContainer().querySelector('.leaflet-control-layers:not(#layers-control-container .leaflet-control-layers)');
+
         if (zoomControlElement) zoomControlElement.style.visibility = 'hidden';
-        if (layersControlElement) layersControlElement.style.visibility = 'hidden';
+        if (layersControlElementFromContainer) layersControlElementFromContainer.style.visibility = 'hidden';
+        if (directLayersControlElement) directLayersControlElement.style.visibility = 'hidden';
 
 
-        // مهلة صغيرة للسماح بتحديث الواجهة وإخفاء العناصر
         setTimeout(() => {
             console.log('PDF Export Action: Starting html2canvas...');
             const canvasOptions = {
-                useCORS: true,    // مهم جداً لمربعات الخرائط من نطاقات أخرى
-                allowTaint: true, // قد يساعد مع بعض مشاكل CORS، لكن useCORS أفضل
-                logging: false,   // تعطيل تسجيلات html2canvas في الكونسول
-                scale: window.devicePixelRatio > 1 ? 1.5 : 1, // تحسين الجودة (يمكن زيادة القيمة بحذر)
-                // backgroundColor: null, // للحفاظ على شفافية الخلفية إن أمكن
+                useCORS: true, allowTaint: true, logging: false, scale: window.devicePixelRatio > 1 ? 1.5 : 1,
                 onclone: (clonedDocument) => {
-                    // يمكنك إجراء تعديلات إضافية على النسخة المستنسخة قبل الالتقاط
-                    // مثلاً التأكد من أن عناصر التحكم مخفية في النسخة
                     const clonedZoom = clonedDocument.querySelector('.leaflet-control-zoom');
-                    const clonedLayers = clonedDocument.querySelector('#layers-control-container .leaflet-control-layers');
+                    const clonedLayersContainer = clonedDocument.querySelector('#layers-control-container .leaflet-control-layers');
+                    const clonedDirectLayers = clonedDocument.querySelector('.leaflet-control-layers:not(#layers-control-container .leaflet-control-layers)'); // Check in cloned doc
                     if(clonedZoom) clonedZoom.style.visibility = 'hidden';
-                    if(clonedLayers) clonedLayers.style.visibility = 'hidden';
+                    if(clonedLayersContainer) clonedLayersContainer.style.visibility = 'hidden';
+                    if(clonedDirectLayers) clonedDirectLayers.style.visibility = 'hidden';
                 }
             };
 
             Promise.all([
                 html2canvas(mapElement, canvasOptions),
-                html2canvas(legendElement, { ...canvasOptions, scale: 1 }) // قد لا تحتاج Legend لنفس الدقة العالية
+                html2canvas(legendElementForPdf, { ...canvasOptions, scale: 1 }) // Use legendElementForPdf
             ]).then(function ([mapCanvas, legendCanvas]) {
                 console.log('PDF Export Action: html2canvas finished successfully.');
 
-                // إعادة إظهار عناصر التحكم
                 if (zoomControlElement) zoomControlElement.style.visibility = 'visible';
-                if (layersControlElement) layersControlElement.style.visibility = 'visible';
+                if (layersControlElementFromContainer) layersControlElementFromContainer.style.visibility = 'visible';
+                if (directLayersControlElement) directLayersControlElement.style.visibility = 'visible';
 
                 const mapImgData = mapCanvas.toDataURL('image/png');
                 const legendImgData = legendCanvas.toDataURL('image/png');
-
-                // استخدام jsPDF (تم التحقق من وجودها في البداية)
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: 'landscape',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-                console.log('PDF Export Action: jsPDF instance created.');
-
+                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = pdf.internal.pageSize.getHeight();
-                const margin = 10; // هامش 10 مم
-
-                // حساب أبعاد الخريطة في الـ PDF مع الحفاظ على النسبة
+                const margin = 10;
                 const mapAspectRatio = mapCanvas.width / mapCanvas.height;
                 let mapPdfWidth = pdfWidth - (2 * margin);
                 let mapPdfHeight = mapPdfWidth / mapAspectRatio;
-                const maxMapHeight = pdfHeight * 0.75; // حد أقصى لارتفاع الخريطة (75% من الصفحة)
-
-                if (mapPdfHeight > maxMapHeight) {
-                    mapPdfHeight = maxMapHeight;
-                    mapPdfWidth = mapPdfHeight * mapAspectRatio;
-                }
-                 // التأكد من أن عرض الخريطة لا يتجاوز المساحة المتاحة
-                if (mapPdfWidth > pdfWidth - (2 * margin)) {
-                    mapPdfWidth = pdfWidth - (2 * margin);
-                    mapPdfHeight = mapPdfWidth / mapAspectRatio;
-                }
-
-
-                // حساب أبعاد المفتاح في الـ PDF
+                const maxMapHeight = pdfHeight * 0.75;
+                if (mapPdfHeight > maxMapHeight) { mapPdfHeight = maxMapHeight; mapPdfWidth = mapPdfHeight * mapAspectRatio; }
+                if (mapPdfWidth > pdfWidth - (2 * margin)) { mapPdfWidth = pdfWidth - (2 * margin); mapPdfHeight = mapPdfWidth / mapAspectRatio; }
                 const legendAspectRatio = legendCanvas.width / legendCanvas.height;
-                const availableHeightForLegend = pdfHeight - mapPdfHeight - (3 * margin); // المساحة المتبقية أسفل الخريطة
-                let legendPdfHeight = Math.min(availableHeightForLegend, 60); // حد أقصى لارتفاع المفتاح (60 مم) وقيد بالمساحة
+                const availableHeightForLegend = pdfHeight - mapPdfHeight - (3 * margin);
+                let legendPdfHeight = Math.min(availableHeightForLegend, 60);
                 let legendPdfWidth = legendPdfHeight * legendAspectRatio;
-
-                 // التأكد من أن عرض المفتاح لا يتجاوز المساحة المتاحة
-                if (legendPdfWidth > pdfWidth - (2 * margin)) {
-                    legendPdfWidth = pdfWidth - (2 * margin);
-                    legendPdfHeight = legendPdfWidth / legendAspectRatio;
-                     // إعادة التحقق من الارتفاع بعد تعديل العرض
-                    if (legendPdfHeight > availableHeightForLegend) {
-                         legendPdfHeight = availableHeightForLegend;
-                         legendPdfWidth = legendPdfHeight * legendAspectRatio;
-                    }
-                }
-
-                // تحديد موضع المفتاح (أسفل الخريطة في الوسط أو على اليسار)
-                let legendX = margin;
-                // يمكنك تعديل الحساب لوضعه في الوسط إذا أردت:
-                // let legendX = (pdfWidth - legendPdfWidth) / 2;
-                let legendY = margin + mapPdfHeight + margin;
-
-                 // التأكد من أن المفتاح لا يخرج عن أسفل الصفحة
-                if (legendY + legendPdfHeight > pdfHeight - margin) {
-                     console.warn("Legend might be too tall to fit completely with the map.");
-                     // يمكن تصغير ارتفاع المفتاح أكثر إذا لزم الأمر
-                     legendPdfHeight = Math.max(5, pdfHeight - legendY - margin); // 5mm كحد أدنى
-                     legendPdfWidth = legendPdfHeight * legendAspectRatio;
-                      // إعادة التأكد من العرض
-                     if (legendPdfWidth > pdfWidth - (2 * margin)) {
-                         legendPdfWidth = pdfWidth - (2 * margin);
-                     }
-                     // إعادة حساب الموضع الأفقي إذا تغير العرض
-                     // legendX = (pdfWidth - legendPdfWidth) / 2; // إذا كنت تريده في الوسط
-                     legendX = margin;
-                }
-
-
-                console.log(`PDF Export Action: Adding map image (${mapPdfWidth.toFixed(1)}x${mapPdfHeight.toFixed(1)}mm) at (${margin}, ${margin})`);
+                if (legendPdfWidth > pdfWidth - (2 * margin)) { legendPdfWidth = pdfWidth - (2 * margin); legendPdfHeight = legendPdfWidth / legendAspectRatio; if (legendPdfHeight > availableHeightForLegend) { legendPdfHeight = availableHeightForLegend; legendPdfWidth = legendPdfHeight * legendAspectRatio; }}
+                let legendX = margin; let legendY = margin + mapPdfHeight + margin;
+                if (legendY + legendPdfHeight > pdfHeight - margin) { legendPdfHeight = Math.max(5, pdfHeight - legendY - margin); legendPdfWidth = legendPdfHeight * legendAspectRatio; if (legendPdfWidth > pdfWidth - (2 * margin)) { legendPdfWidth = pdfWidth - (2 * margin); } legendX = margin; }
                 pdf.addImage(mapImgData, 'PNG', margin, margin, mapPdfWidth, mapPdfHeight);
-
-                console.log(`PDF Export Action: Adding legend image (${legendPdfWidth.toFixed(1)}x${legendPdfHeight.toFixed(1)}mm) at (${legendX.toFixed(1)}, ${legendY.toFixed(1)})`);
                 pdf.addImage(legendImgData, 'PNG', legendX, legendY, legendPdfWidth, legendPdfHeight);
-
-                // إضافة عنوان وتاريخ (اختياري)
-                pdf.setFontSize(10);
-                pdf.setTextColor(100); // لون رمادي داكن
+                pdf.setFontSize(10); pdf.setTextColor(100);
                 pdf.text('خريطة جماعة العطاوية - نظام المعلومات الجغرافي', margin, margin - 4);
-                try { // استخدام try-catch لتجنب أخطاء التنسيق المحتملة للتواريخ في بعض المتصفحات
-                     pdf.text(new Date().toLocaleDateString('ar-EG-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' }), pdfWidth - margin, margin - 4, { align: 'right' });
-                } catch (e) {
-                     pdf.text(new Date().toLocaleDateString(), pdfWidth - margin, margin - 4, { align: 'right' }); // Fallback
-                }
-
-                console.log('PDF Export Action: Saving PDF...');
+                try { pdf.text(new Date().toLocaleDateString('ar-EG-u-nu-latn', { year: 'numeric', month: 'long', day: 'numeric' }), pdfWidth - margin, margin - 4, { align: 'right' }); } catch (e) { pdf.text(new Date().toLocaleDateString(), pdfWidth - margin, margin - 4, { align: 'right' }); }
                 pdf.save('خريطة_العطاوية.pdf');
-
-                // إعادة الزر إلى حالته الطبيعية
-                exportButton.disabled = false;
-                exportButton.innerHTML = originalButtonHtml;
+                exportButton.disabled = false; exportButton.innerHTML = originalButtonHtml;
                 console.log('PDF Export Action: Process completed successfully.');
-
             }).catch(function(error) {
-                console.error('PDF Export Error: Error during html2canvas or PDF generation:', error);
-                alert('حدث خطأ أثناء محاولة إخراج الخريطة. يرجى مراجعة الكونسول لمزيد من التفاصيل (اضغط F12). قد تكون المشكلة متعلقة بـ CORS.');
-
-                // إعادة إظهار عناصر التحكم في حالة الخطأ أيضاً
+                console.error('PDF Export Error:', error);
+                alert('حدث خطأ أثناء محاولة إخراج الخريطة. يرجى مراجعة الكونسول (F12).');
                 if (zoomControlElement) zoomControlElement.style.visibility = 'visible';
-                if (layersControlElement) layersControlElement.style.visibility = 'visible';
-
-                // إعادة الزر إلى حالته الطبيعية
-                exportButton.disabled = false;
-                exportButton.innerHTML = originalButtonHtml;
+                if (layersControlElementFromContainer) layersControlElementFromContainer.style.visibility = 'visible';
+                if (directLayersControlElement) directLayersControlElement.style.visibility = 'visible';
+                exportButton.disabled = false; exportButton.innerHTML = originalButtonHtml;
             });
-        }, 150); // زيادة المهلة قليلاً قد تساعد في التقاط العناصر بشكل أفضل
-
+        }, 150);
     });
 } else {
-    console.error('PDF Export Setup Error: One or more required elements not found!');
-    if (!exportButton) console.error(' - Element with ID "exportPdfButton" not found.');
-    if (!mapElement) console.error(' - Element with ID "map" not found.');
-    if (!legendElement) console.error(' - Element with ID "custom-legend" not found. Make sure updateCustomLegend() creates it.');
+    console.error('PDF Export Setup Error: Required elements missing.');
+    if (!exportButton) console.error('- "exportPdfButton" not found.');
+    if (!mapElement) console.error('- "map" not found.');
+    if (!legendElementForPdf) console.error('- Legend element with ID "custom-legend" not found for PDF export.');
 }
 // --- نهاية كود إخراج PDF ---
-            const exportDataBtn = document.getElementById('export-data-btn'); // <<< تغيير اسم المتغير هنا
-            if (exportDataBtn) { // <<< تغيير اسم المتغير هنا أيضاً
-                exportDataBtn.addEventListener('click', () => { // <<< وهنا أيضاً
+            const exportDataBtn = document.getElementById('export-data-btn'); 
+            if (exportDataBtn) { 
+                exportDataBtn.addEventListener('click', () => { 
                     alert('سيتم تنفيذ وظيفة إخراج البيانات هنا!');
                 });
             }
@@ -716,7 +733,7 @@ if (exportButton && mapElement && legendElement) {
         });
 
     function updateCustomLegend(containerElement) {
-        const legendContainerId = 'custom-legend';
+        const legendContainerId = 'custom-legend'; // This ID must match the one used for PDF export
         let legendDiv = document.getElementById(legendContainerId);
 
         if (!legendDiv) {
@@ -725,48 +742,37 @@ if (exportButton && mapElement && legendElement) {
             if (containerElement) {
                 containerElement.appendChild(legendDiv);
             } else {
-                console.warn("Legend container not provided, legend may not be displayed correctly.");
-                document.body.appendChild(legendDiv);
+                document.body.appendChild(legendDiv); 
             }
         }
         legendDiv.innerHTML = '<h4>وسيلة الإيضاح</h4>';
-
         const orderedLayerNames = Object.keys(detailedStyles);
 
         orderedLayerNames.forEach(mainLayerName => {
             if (detailedStyles.hasOwnProperty(mainLayerName) && mainLayerName !== "طبقة غير مصنفة") {
                 const layerConfig = detailedStyles[mainLayerName];
-
                 const mainLayerDiv = document.createElement('div');
                 mainLayerDiv.innerHTML = `<strong>${layerConfig.displayName || mainLayerName}</strong>`;
                 legendDiv.appendChild(mainLayerDiv);
 
-                if (layerConfig.subcategories && Object.keys(layerConfig.subcategories).length > 0) {
-                    Object.keys(layerConfig.subcategories).forEach(subcatName => {
-                        if (subcatName.startsWith("_default")) return;
+                const subcategoriesToShow = layerConfig.subcategories ? Object.keys(layerConfig.subcategories).filter(k => !k.startsWith("_default")) : [];
 
+                if (subcategoriesToShow.length > 0) {
+                    subcategoriesToShow.forEach(subcatName => {
                         const subcatConfig = layerConfig.subcategories[subcatName];
                         if (!subcatConfig) return;
-
                         const itemDiv = document.createElement('div');
                         itemDiv.style.cssText = "margin-left:10px; display:flex; align-items:center; margin-bottom:3px;";
                         let iconHtml = '';
-
                         if (subcatConfig.style) {
                             iconHtml = createFeatureIcon(subcatConfig.style).options.html;
                         } else if (subcatConfig.styleConfig) {
                             const sc = subcatConfig.styleConfig;
-                            const isLine = mainLayerName === "شبكة الطرق" ||
-                                           (sc.hasOwnProperty('weight') && (!sc.hasOwnProperty('fillColor') || sc.fillColor === 'transparent' || sc.fillOpacity === 0));
-
+                            const isLine = mainLayerName === "شبكة الطرق" || (sc.weight && (!sc.fillColor || sc.fillColor === 'transparent' || sc.fillColor === 'none' || sc.fillOpacity === 0));
                             if (isLine) {
-                                if (sc.dashArray) {
-                                    iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, sc.weight || 2)}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
-                                } else {
-                                    iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
-                                }
-                            } else { // Polygon
-                                iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${sc.fillOpacity || 1};"></span>`;
+                                iconHtml = sc.dashArray ? `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, (sc.weight || 2))}px; stroke-dasharray:${String(sc.dashArray).replace(/,/g, ' ')};" /></svg>` : `<span style="display:inline-block; width:16px; height:${Math.max(2, (sc.weight || 2))}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
+                            } else {
+                                iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${(sc.weight || 1)}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${(typeof sc.fillOpacity !== 'undefined' ? sc.fillOpacity : 1)};"></span>`;
                             }
                         }
                         itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span>${subcatConfig.displayName || subcatName}</span>`;
@@ -780,20 +786,18 @@ if (exportButton && mapElement && legendElement) {
                          iconHtml = createFeatureIcon(layerConfig.defaultPointStyle).options.html;
                     } else if (layerConfig.defaultLinePolyStyle) {
                         const sc = layerConfig.defaultLinePolyStyle;
-                         const isLine = mainLayerName === "شبكة الطرق" ||
-                                       (sc.hasOwnProperty('weight') && (!sc.hasOwnProperty('fillColor') || sc.fillColor === 'transparent' || sc.fillOpacity === 0));
+                        const isLine = mainLayerName === "شبكة الطرق" || mainLayerName === "حدود إدارية العطاوية" || (sc.weight && (!sc.fillColor || sc.fillColor === 'transparent' || sc.fillColor === 'none' || sc.fillOpacity === 0));
                         if (isLine) {
-                             if (sc.dashArray) {
-                                iconHtml = `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, sc.weight || 2)}; stroke-dasharray:${sc.dashArray.replace(/,/g, ' ')};" /></svg>`;
-                            } else {
-                                 iconHtml = `<span style="display:inline-block; width:16px; height:${Math.max(2, sc.weight || 2)}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
-                            }
-                        } else { // Polygon
-                             iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${sc.weight || 1}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${sc.fillOpacity || 1};"></span>`;
+                             iconHtml = sc.dashArray ? `<svg width="20" height="10" style="margin-right:5px; vertical-align:middle;"><line x1="0" y1="5" x2="20" y2="5" style="stroke:${sc.color || '#000'}; stroke-width:${Math.max(1, (sc.weight || 2))}px; stroke-dasharray:${String(sc.dashArray).replace(/,/g, ' ')};" /></svg>` : `<span style="display:inline-block; width:16px; height:${Math.max(2, (sc.weight || 2))}px; background-color:${sc.color || '#000'}; margin-right:5px; vertical-align:middle;"></span>`;
+                        } else {
+                             iconHtml = `<span style="background-color:${sc.fillColor || 'transparent'}; border: ${(sc.weight || 1)}px solid ${sc.color || '#000'}; width:16px; height:10px; display:inline-block; margin-right:5px; vertical-align:middle; opacity:${(typeof sc.fillOpacity !== 'undefined' ? sc.fillOpacity : 1)};"></span>`;
                         }
                     }
-                    itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml || '?'}</span> <span><small>(نمط افتراضي للطبقة)</small></span>`;
-                    legendDiv.appendChild(itemDiv);
+                    const defaultStyleText = (mainLayerName === "حدود إدارية العطاوية" && !subcategoriesToShow.length) ? `<span>${layerConfig.displayName}</span>` : "<small>(نمط افتراضي للطبقة)</small>";
+                    if (iconHtml) {
+                       itemDiv.innerHTML = `<span style="display:inline-block; width:22px; height:22px; line-height:22px; text-align:center; margin-right:5px; flex-shrink:0;">${iconHtml}</span> ${defaultStyleText}`;
+                       legendDiv.appendChild(itemDiv);
+                    }
                 }
             }
         });
@@ -811,116 +815,36 @@ if (exportButton && mapElement && legendElement) {
             }
         }
     }
-    // =============================================================
-    // == كود النافذة المنبثقة لـ "اتصل بنا" (Contact Us Modal) ==
-    // =============================================================
-    var modal = document.getElementById("contactModal");
-    var btnContact = document.getElementById("contactBtnHeader"); // تأكد أن هذا الـ ID يطابق زر "اتصل بنا" في HTML
-    var spanClose = document.getElementsByClassName("close-button")[0]; // يفترض وجود زر إغلاق واحد بهذا الكلاس
 
-    // التحقق من وجود العناصر قبل إضافة المستمعين
-    if (btnContact && modal) {
-        // عندما يضغط المستخدم على الزر "اتصل بنا"، افتح النافذة
-        btnContact.onclick = function() {
-            modal.style.display = "block";
-        }
+    if (btnContact && contactModal) { btnContact.onclick = () => contactModal.style.display = "block"; }
+    if (spanClose && contactModal) { spanClose.onclick = () => contactModal.style.display = "none"; }
+
+    if (showCommentsBtn && commentsModal && closeCommentsModalBtn) {
+        showCommentsBtn.onclick = () => commentsModal.style.display = 'block';
+        closeCommentsModalBtn.onclick = () => commentsModal.style.display = 'none';
     }
 
-    if (spanClose && modal) {
-        // عندما يضغط المستخدم على <span> (x)، أغلق النافذة
-        spanClose.onclick = function() {
-            modal.style.display = "none";
-        }
-    }
-    // عندما يضغط المستخدم في أي مكان خارج محتوى النافذة، أغلقها
-    window.onclick = function(event) {
-        if (modal && event.target == modal) { // إذا كان الهدف هو الخلفية الرمادية للنافذة
-            modal.style.display = "none";
-        }
-    }
-    // --- وظيفة النافذة المنبثقة للتعليقات ---
-if (showCommentsBtn && commentsModal && closeCommentsModalBtn) {
-    showCommentsBtn.onclick = function() {
-        commentsModal.style.display = 'block';
-    }
-    closeCommentsModalBtn.onclick = function() {
-        commentsModal.style.display = 'none';
-    }
-    // إغلاق نافذة التعليقات عند النقر خارج محتواها
-    window.addEventListener('click', function(event) { // استخدم addEventListener لتجنب الكتابة فوق window.onclick السابق
-        if (event.target == commentsModal) {
-            commentsModal.style.display = 'none';
-        }
+    window.addEventListener('click', function(event) {
+        if (event.target == contactModal) contactModal.style.display = "none";
+        if (event.target == commentsModal) commentsModal.style.display = 'none';
     });
-} else {
-    if (!showCommentsBtn) console.error("Button 'showCommentsBtn' not found.");
-    if (!commentsModal) console.error("Modal 'commentsModal' not found.");
-    if (!closeCommentsModalBtn) console.error("Button 'closeCommentsModalBtn' not found.");
-}
 
-// (اختياري) التعامل مع إرسال نموذج التعليق
-if (commentForm && commentsListDiv) {
-    commentForm.onsubmit = function(event) {
-        event.preventDefault(); // منع الإرسال التقليدي للنموذج
-
-        var commenterName = document.getElementById('commenterName').value.trim();
-        var commentText = document.getElementById('commentText').value.trim();
-
-        if (commentText === "") {
-            alert("الرجاء كتابة تعليق.");
-            return;
-        }
-
-        // إنشاء عنصر التعليق الجديد
-        var newComment = document.createElement('div');
-        newComment.style.borderBottom = "1px solid #eee";
-        newComment.style.paddingBottom = "10px";
-        newComment.style.marginBottom = "10px";
-
-        var nameStrong = document.createElement('strong');
-        nameStrong.textContent = commenterName ? commenterName : "مجهول";
-        newComment.appendChild(nameStrong);
-
-        var textP = document.createElement('p');
-        textP.textContent = commentText;
-        textP.style.margin = "5px 0 0 0";
-        newComment.appendChild(textP);
-
-           // إزالة رسالة "لا توجد تعليقات" إذا كانت موجودة
-        // الطريقة الأولى: البحث عن الفقرة التي تحتوي على النص المحدد
-        var paragraphsInList = commentsListDiv.getElementsByTagName('p');
-        for (var i = 0; i < paragraphsInList.length; i++) {
-            var pElement = paragraphsInList[i];
-            // نتحقق مما إذا كان النص داخل الفقرة أو داخل عنصر <em> بداخلها
-            var textContent = pElement.textContent || pElement.innerText;
-            if (textContent.includes("لا توجد تعليقات حاليًا")) {
-                if (pElement.parentNode === commentsListDiv) { // تأكد أنه ابن مباشر
-                    commentsListDiv.removeChild(pElement);
-                    console.log("'No comments' paragraph containing the specific text removed.");
-                    break; // نخرج من الحلقة بعد إزالة العنصر
-                }
+    if (commentForm && commentsListDiv) {
+        commentForm.onsubmit = function(event) {
+            event.preventDefault();
+            var commenterName = document.getElementById('commenterName').value.trim();
+            var commentText = document.getElementById('commentText').value.trim();
+            if (commentText === "") { alert("الرجاء كتابة تعليق."); return; }
+            var newComment = document.createElement('div');
+            newComment.style.cssText = "border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;";
+            newComment.innerHTML = `<strong>${commenterName || "مجهول"}</strong><p style="margin:5px 0 0 0;">${commentText}</p>`;
+            const noCommentsMsg = commentsListDiv.querySelector('p > em');
+            if (noCommentsMsg && noCommentsMsg.textContent.includes("لا توجد تعليقات حاليًا")) {
+                noCommentsMsg.parentElement.remove();
             }
-        }
-
-        // الطريقة الثانية (إذا كنت متأكدًا من أن العنصر <p> هو الوحيد أو الأول):
-        // هذا الكود سيعمل إذا كان <p><em>...</em></p> هو العنصر الوحيد أو الأول
-        // var initialMessageParagraph = commentsListDiv.querySelector('#comments-list > p:first-child > em');
-        // if (initialMessageParagraph && initialMessageParagraph.parentElement.parentNode === commentsListDiv) {
-        //     commentsListDiv.removeChild(initialMessageParagraph.parentElement);
-        //     console.log("Initial 'no comments' message (paragraph) removed.");
-        // }
-        commentsListDiv.appendChild(newComment);
-
-        // مسح النموذج
-        document.getElementById('commenterName').value = "";
-        document.getElementById('commentText').value = "";
-
-        alert("شكراً على تعليقك!");
-        // يمكنك هنا إضافة كود لإرسال التعليق إلى خادم إذا أردت حفظه بشكل دائم
-    };
-}
-    // =============================================================
-    // == نهاية كود النافذة المنبثقة ==
-    // =============================================================
-
-}); // نهاية مستمع DOMContentLoaded
+            commentsListDiv.appendChild(newComment);
+            commentForm.reset();
+            alert("شكراً على تعليقك!");
+        };
+    }
+});
