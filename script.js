@@ -103,13 +103,31 @@ const detailedStyles = {
         },
         defaultPointStyle: { symbol: 'pin', color: '#B0E0E6', size: 18 } // PowderBlue pin
     },
-    "طبقة المباني": {
+      "طبقة المباني": { 
         displayName: "طبقة المباني",
         subcategories: {
-            "خدماتي": { displayName: "خدماتي", style: { symbol: 'circle', color: '#BDB76B', size: 12 } }, // DarkKhaki circle (assuming points now)
-            "سكني": { displayName: "سكني", style: { symbol: 'circle', color: '#A9A9A9', size: 12 } }    // DarkGray circle (assuming points now)
+            "خدماتي": { 
+                displayName: "تجاري/خدماتي", // ليتناسب مع اللون الأصفر
+                style: { symbol: 'circle', color: '#FFD700', size: 8 } // دائرة صفراء أصغر حجمًا
+            },
+            "سكني": { 
+                displayName: "سكني", 
+                style: { symbol: 'circle', color: '#007bff', size: 8 } // دائرة زرقاء أصغر حجمًا
+            },
+            "مبنى": { //  فئة فرعية إضافية إذا كانت بعض المعالم لها النوع "مبني" فقط
+                displayName: "مبنى (عام)",
+                style: { symbol: 'square', color: '#6c757d', size: 8 } // مربع رمادي
+            },
+            "قيد البناء": { // فئة فرعية للمباني قيد الإنشاء
+                displayName: "قيد البناء",
+                style: { symbol: 'pin', color: '#FFA500', size: 10, opacity: 0.7 } // دبوس برتقالي شفاف قليلاً
+            },
+            "_default_sub_style": { 
+                displayName: "(مبنى غير محدد)", 
+                style: { symbol: 'pin', color: '#AAAAAA', size: 10 } 
+            }
         },
-        defaultPointStyle: { symbol: 'pin', color: '#D3D3D3', size: 10 } // LightGray pin
+        defaultPointStyle: { symbol: 'pin', color: '#C0C0C0', size: 8 } // نمط افتراضي عام للطبقة
     },
     "محطات الوقود": {
         displayName: "محطات الوقود",
