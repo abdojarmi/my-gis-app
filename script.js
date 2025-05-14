@@ -666,25 +666,12 @@ const detailedStyles = {
                             const currentMainLayerName = feature.properties.derived_main_layer;
                             const currentMainLayerConfig = detailedStyles[currentMainLayerName] || detailedStyles["طبقة غير مصنفة"];
 
-                           const subCategoryPropertyCandidates = [
-    'نوع المرفق',       // <<< الأهم لهذه الطبقة
-    'النوع',
-    'SubCategory',
-    'type',
-    'fclass',
-    'Nature',
-    'طبيعة_المرفق',
-    'classification',
-    'amenity',
-    'shop',
-    'leisure',
-    'building',
-    'landuse',
-    'power',          // قد يكون مفيدًا لـ "محول كهرباء" إذا لم يكن "نوع المرفق" موجودًا
-    'man_made',       // قد يكون مفيدًا لـ "خزان مياه"
-    'TYPE_VOIE',      // للطبقات الأخرى
-    'road_type'       // للطبقات الأخرى
+const subCategoryPropertyCandidates = [
+    'نوع المرفق', 'النوع', 'SubCategory', 'type', 'fclass', 'Nature',
+    'طبيعة_المرفق', 'classification', 'amenity', 'shop', 'leisure',
+    'building', 'landuse', 'power', 'man_made', 'TYPE_VOIE', 'road_type'
 ];
+                                
                             let subCategoryName = "_default_sub_style";
 
                             if (currentMainLayerConfig.subcategories) {
