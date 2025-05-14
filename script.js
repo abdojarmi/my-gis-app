@@ -336,16 +336,22 @@ const detailedStyles = {
             // 2. حدود إدارية العطاوية (تعريف واحد فقط)
             { 
                 name: "حدود إدارية العطاوية", 
-                keys: directMatchPropKeys, 
+                keys: directMatchPropKeys, // directMatchPropKeys يبحث عن تطابق تام في خصائص مثل 'layer', 'LAYER', 'Name'
                 keywords: { 
-                    'LAYER': ["حدود العطاوية", "الحدود الادارية للعطاوية", "Limites Communes"], 
-                    'Name': ["حدود جماعة العطاوية"],
-                    'type': ["administrative", "boundary"], 
-                    'fclass': ["administrative", "boundary_administrative"],
-                    'الوصف': ["حدود ادارية"] 
-                }, 
-                geomCheck: ["LineString", "Polygon", "MultiPolygon"]
-            }, // <--- فاصلة هنا
+                    // سنضيف كلمات مفتاحية للبحث في خصائص عامة، ولكن بحذر
+                    // 'type': ["administrative", "boundary"], // إذا كانت هذه الخصائص موجودة في معالم أخرى ولكن بقيم مختلفة، قد لا تكون مفيدة هنا
+                    // 'fclass': ["administrative", "boundary_administrative"],
+                    // 'الوصف': ["حدود ادارية", "حدود الجماعة"],
+                    // 'categorie': ["limite", "boundary", "حدود"]
+                    // بما أن الجدول الوصفي لا يحتوي على هذه، قد لا تكون فعالة إلا إذا كانت هذه الخصائص تُضاف أثناء التصدير إلى GeoJSON
+                },
+                // الأهم هنا هو الاعتماد على Path أو اسم الطبقة المباشر
+                // دالة checkLayer تقوم بفحص Path إذا كان pathCheck = true (وهو الافتراضي)
+                // لذلك، إذا كانت خاصية 'Path' في GeoJSON تحتوي على "حدود_إدارية_العطاوية" كجزء منها،
+                // أو إذا كانت إحدى الخصائص في directMatchPropKeys (مثل 'layer' أو 'Name') تساوي "حدود إدارية العطاوية"
+                // فسيتم تصنيفها بشكل صحيح.
+                geomCheck: ["Polygon", "MultiPolygon"] // نتأكد أنها مضلع
+            },
 
             // 3. المناطق الخضراء والزراعة
             { 
