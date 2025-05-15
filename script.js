@@ -235,17 +235,46 @@ const detailedStyles = {
         },
         defaultLinePolyStyle: { color: "#BEBEBE", weight: 1.5, opacity: 0.7 }
     },
-    "المناطق الخضراء والزراعة": {
-        displayName: "المناطق الخضراء والزراعة",
-        subcategories: {
-            "المغروسات": { displayName: "المغروسات", styleConfig: { fillColor: "#228B22", color: "#006400", weight: 1, fillOpacity: 0.6 } }, // ForestGreen fill
-            "المزروعات": { displayName: "المزروعات", styleConfig: { fillColor: "#9ACD32", color: "#6B8E23", weight: 1, fillOpacity: 0.6 } }, // YellowGreen fill
-            "حديقة عامة": { displayName: "حديقة عامة", styleConfig: { fillColor: "#3CB371", color: "#2E8B57", weight: 1, fillOpacity: 0.7 } }, // MediumSeaGreen fill
-            "شريط أخضر": { displayName: "شريط أخضر", styleConfig: { fillColor: "#98FB98", color: "#00FA9A", weight: 1, fillOpacity: 0.7 } }, // PaleGreen fill
-            "منتزه": { displayName: "منتزه", styleConfig: { fillColor: "#F5DEB3", color: "#D2B48C", weight: 1, fillOpacity: 0.6 } }    // Wheat fill (placeholder for park icon)
+"المناطق الخضراء والزراعة": {
+    displayName: "المناطق الخضراء والزراعة",
+    subcategories: {
+        // تأكد أن هذه المفاتيح (الأسماء العربية هنا) هي بالضبط القيم الموجودة
+        // في عمود "نوع_الاستخدام" في بياناتك
+        "المغروسات": {
+            displayName: "المغروسات", // الاسم الذي يظهر في وسيلة الإيضاح
+            // لون أخضر داكن للمغروسات (يشبه رمز الشجرة في وسيلة إيضاحك)
+            styleConfig: { fillColor: "#228B22", color: "#006400", weight: 1, fillOpacity: 0.7 }
         },
-        defaultLinePolyStyle: { fillColor: "#ADFF2F", color: "#556B2F", weight: 1, fillOpacity: 0.5 } // GreenYellow fill
+        "المزروعات": {
+            displayName: "المزروعات",
+            // لون أخضر فاتح للمزروعات (يشبه رمز الحقل في وسيلة إيضاحك)
+            styleConfig: { fillColor: "#9ACD32", color: "#6B8E23", weight: 1, fillOpacity: 0.7 }
+        },
+        "حديقة عامة": {
+            displayName: "حديقة عامة",
+            // لون أخضر باهت/أبيض مائل للخضرة (يشبه رمز الحديقة في وسيلة إيضاحك)
+            styleConfig: { fillColor: "#E0F2E0", color: "#A0D2A0", weight: 1, fillOpacity: 0.7 } // مثال، عدل حسب الحاجة
+        },
+        "شريط أخضر": {
+            displayName: "شريط أخضر",
+            // لون أخضر ساطع (كما في وسيلة إيضاحك)
+            styleConfig: { fillColor: "#00FF00", color: "#008000", weight: 1, fillOpacity: 0.7 } // أخضر ليموني ساطع
+        },
+        "منتزه": {
+            displayName: "منتزه",
+            // لون بيج/أصفر باهت (كما في وسيلة إيضاحك)
+            styleConfig: { fillColor: "#F5DEB3", color: "#D2B48C", weight: 1, fillOpacity: 0.7 }
+        },
+        // يمكنك إضافة فئة فرعية افتراضية إذا كانت بعض القيم في "نوع_الاستخدام"
+        // ليست ضمن هذه الفئات
+        "_default_sub_style": {
+            displayName: "(منطقة خضراء غير محددة)",
+            styleConfig: { fillColor: "#ADFF2F", color: "#556B2F", weight: 1, fillOpacity: 0.5 } // GreenYellow fill
+        }
     },
+    // النمط الافتراضي إذا لم يتم العثور على فئة فرعية مطابقة
+    defaultLinePolyStyle: { fillColor: "#ADFF2F", color: "#556B2F", weight: 1, fillOpacity: 0.5 } // GreenYellow fill
+},
     "أحياء": {
         displayName: "أحياء", // أبقيت على الاسم بدون "الكثافة السكانية" ليتطابق مع الصورة
         subcategories: {
@@ -377,16 +406,27 @@ const detailedStyles = {
 
             // 3. المناطق الخضراء والزراعة
             { 
-                name: "المناطق الخضراء والزراعة", 
-                keys: directMatchPropKeys, 
-                keywords: {
-                    'landuse': ["farmland", "forest", "grass", "meadow", "orchard", "vineyard", "greenfield", "recreation_ground", "cemetery", "village_green", "plant_nursery", "allotments", "flowerbed", "conservation", "greenery", "park", "garden"],
-                    'natural': ['wood', 'tree_row', 'grassland', 'scrub', 'heath', 'tree', 'fell', 'wetland', 'bare_rock', 'scree', 'shingle', 'sand', 'beach', 'water', 'spring', 'vegetation'],
-                    'fclass': ["park", "farmland", "forest", "grass", "meadow", "scrub", "heath", "orchard", "cemetery", "village_green", "greenfield", "wood", "garden", "nature_reserve"],
-                    'النوع': ["زراعة", "خضراء", "حديقة", "منتزه", "مغروسات", "مزروعات", "بستان", "غابة", "منطقة خضراء", "فلاحي", "مساحة خضراء"]
-                }, 
-                geomCheck: ["Polygon", "MultiPolygon"]
-            }, // <--- فاصلة هنا
+        name: "المناطق الخضراء والزراعة",
+        keys: directMatchPropKeys, // لا يزال مفيدًا إذا كان اسم الطبقة مطابقًا في بعض الخصائص العامة
+        keywords: {
+            // الأولوية القصوى ستكون لحقل "نوع_الاستخدام"
+            'نوع_الاستخدام': [
+                "المغروسات", "المزروعات", "حديقة عامة", "شريط أخضر", "منتزه",
+                // أضف أي قيم أخرى محتملة من عمود "نوع_الاستخدام" هنا
+                // إذا كانت لديك قيم أخرى تدل على أنها منطقة خضراء ولكنها ليست مصنفة
+                // بشكل دقيق ضمن الفئات الفرعية أعلاه، يمكنك إضافتها هنا
+                // لجعلها تقع ضمن الطبقة الرئيسية "المناطق الخضراء والزراعة"
+                // مثال: "منطقة طبيعية", "غطاء نباتي"
+            ],
+            // الكلمات المفتاحية الأخرى يمكن أن تكون كدعم ثانوي إذا لم يكن "نوع_الاستخدام" كافيًا
+            // أو إذا كانت بعض البيانات تستخدم حقولاً أخرى
+            'landuse': ["farmland", "forest", "grass", "meadow", "orchard", "vineyard", "greenfield", "recreation_ground", "park", "garden", "village_green", "plant_nursery", "allotments", "flowerbed", "conservation", "greenery"],
+            'natural': ['wood', 'tree_row', 'grassland', 'scrub', 'heath', 'tree', 'fell', 'wetland', 'vegetation'],
+            'fclass': ["park", "farmland", "forest", "grass", "meadow", "scrub", "heath", "orchard", "village_green", "greenfield", "wood", "garden", "nature_reserve"],
+            'النوع': ["زراعة", "خضراء", "حديقة", "منتزه", "بستان", "غابة", "منطقة خضراء", "فلاحي", "مساحة خضراء"] // قد يكون هذا الحقل موجودًا أيضًا
+        },
+        geomCheck: ["Polygon", "MultiPolygon"] // مهم جدًا للتأكد أنها مضلعات
+    },
 
             // 4. محطات الوقود
             { 
@@ -666,26 +706,29 @@ const detailedStyles = {
                             const currentMainLayerName = feature.properties.derived_main_layer;
                             const currentMainLayerConfig = detailedStyles[currentMainLayerName] || detailedStyles["طبقة غير مصنفة"];
 
-const subCategoryPropertyCandidates = [
-    'نوع المرفق', 'النوع', 'SubCategory', 'type', 'fclass', 'Nature',
-    'طبيعة_المرفق', 'classification', 'amenity', 'shop', 'leisure',
-    'building', 'landuse', 'power', 'man_made', 'TYPE_VOIE', 'road_type'
-];
-                                
-                            let subCategoryName = "_default_sub_style";
+                            // هذه هي القائمة المهمة
+                            const subCategoryPropertyCandidates = [
+                                'نوع_الاستخدام', // <--- أضف "نوع_الاستخدام" هنا، ويفضل أن يكون الأول إذا كان هو المصدر الرئيسي
+                                'نوع المرفق', 'النوع', 'SubCategory', 'type', 'fclass', 'Nature',
+                                'طبيعة_المرفق', 'classification', 'amenity', 'shop', 'leisure',
+                                'building', 'landuse', 'power', 'man_made', 'TYPE_VOIE', 'road_type'
+                            ];
+
+                            let subCategoryName = "_default_sub_style"; // النمط الفرعي الافتراضي
 
                             if (currentMainLayerConfig.subcategories) {
                                 for (const propKey of subCategoryPropertyCandidates) {
                                     if (feature.properties[propKey]) {
                                         const propValue = String(feature.properties[propKey]).trim();
+                                        // تأكد أننا نبحث عن styleConfig للمضلعات/الخطوط
                                         if (currentMainLayerConfig.subcategories[propValue]?.styleConfig) {
                                             subCategoryName = propValue;
-                                            break;
+                                            break; // وجدنا تطابقًا، اخرج من الحلقة
                                         }
                                     }
                                 }
                             }
-                            
+
                             let styleConfigToUse;
                             if (currentMainLayerConfig.subcategories && currentMainLayerConfig.subcategories[subCategoryName]?.styleConfig) {
                                 styleConfigToUse = currentMainLayerConfig.subcategories[subCategoryName].styleConfig;
