@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
     viewBox: '0 0 24 24', // أو ما يناسب الـ SVG path
     defaultColor: '#D32F2F', // مثال: لون أحمر داكن
     defaultSize: 22
+        } // <--- لا توجد فاصلة هنا لأن هذا هو آخر عنصر في الكائن
     };
   
     // ===================================================================
