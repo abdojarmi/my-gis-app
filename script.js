@@ -208,16 +208,35 @@ const detailedStyles = {
         displayName: "الادارات الترابية",
         defaultPointStyle: { symbol: 'building', color: '#778899', size: 22 } // LightSlateGray building (placeholder for specific admin building icon)
     },
+        
     "المرافق الرياضية والترفيهية": {
         displayName: "المرافق الرياضية والترفيهية",
-        subcategories: {
-            "ثقافي وترفيهي": { displayName: "ثقافي وترفيهي", style: { symbol: 'pin', color: '#FF69B4', size: 18 } }, // HotPink pin (placeholder for theater masks)
-            "رياضي/ترفيهي": { displayName: "رياضي/ترفيهي", style: { symbol: 'pin', color: '#DC143C', size: 18 } }, // Crimson pin (placeholder for running person)
-            "ثقافي": { displayName: "ثقافي", style: { symbol: 'pin', color: '#BA55D3', size: 18 } },          // MediumOrchid pin (placeholder for book/palette)
-            "رياضي": { displayName: "رياضي", style: { symbol: 'pin', color: '#4682B4', size: 18 } }           // SteelBlue pin (placeholder for ball/runner)
+    subcategories: {
+        "ثقافي وترفيهي": {
+            displayName: "ثقافي وترفيهي",
+            // اختر رمزًا ولونًا من symbolLibrary أو أضف رمز SVG جديدًا
+            style: { symbol: 'pin', color: '#8A2BE2', size: 20 } // مثال: BlueViolet
         },
-        defaultPointStyle: { symbol: 'pin', color: '#6A5ACD', size: 16 } // SlateBlue pin
+        "رياضي/ترفيهي": {
+            displayName: "رياضي/ترفيهي",
+            style: { symbol: 'pin', color: '#FF4500', size: 20 } // مثال: OrangeRed
+        },
+        "ثقافي": {
+            displayName: "ثقافي",
+            style: { symbol: 'pin', color: '#4682B4', size: 20 } // مثال: SteelBlue
+        },
+        "رياضي": {
+            displayName: "رياضي",
+            style: { symbol: 'pin', color: '#32CD32', size: 20 } // مثال: LimeGreen
+        },
+        // لا تزال هذه الفئة الفرعية الافتراضية مفيدة إذا لم نتمكن من تعيين قيمة من نوع_1
+        "_default_sub_style": {
+            displayName: "(مرفق غير محدد)",
+            style: { symbol: 'pin', color: '#AAAAAA', size: 16 }
+        }
     },
+    defaultPointStyle: { symbol: 'pin', color: '#6A5ACD', size: 16 }
+},
     "شبكة الطرق": {
         displayName: "شبكة الطرق",
         subcategories: {
@@ -442,16 +461,23 @@ const detailedStyles = {
 
             // 5. المرافق الرياضية والترفيهية
             { 
-                name: "المرافق الرياضية والترفيهية", 
-                keys: directMatchPropKeys, 
-                keywords: {
-                    'leisure': ["pitch", "stadium", "sports_centre", "playground", "track", "fitness_centre", "swimming_pool", "sports_hall", "miniature_golf", "golf_course", "ice_rink", "water_park", "dog_park", "nature_reserve", "bandstand", "amusement_arcade", "dance_hall", "club", "marina", "slipway", "adult_gaming_centre", "park", "garden"], 
-                    'sport': ["soccer", "basketball", "tennis", "swimming", "athletics", "football", "golf", "equestrian", "multi", "gymnastics", "volleyball", "handball", "table_tennis", "shooting", "archery", "boules", "bowling", "skating", "climbing", "diving", "surfing", "yoga"], 
-                    'amenity': ["theatre", "cinema", "community_centre", "arts_centre", "nightclub", "social_club", "conference_centre", "events_venue", "planetarium", "casino", "youth_centre", "library", "internet_cafe", "public_bath", "spa"], 
-                    'tourism': ["theme_park", "zoo", "picnic_site", "attraction", "artwork", "gallery", "museum", "aquarium", "viewpoint", "information"],
-                    'النوع': ["رياضة", "ترفيه", "ملعب", "مسبح", "ثقافي", "مسرح", "نادي", "حديقة ترفيهية", "منتزه", "قاعة", "فضاء", "مكتبة", "سينما", "مركز ثقافي", "نقطة جذب", "متحف", "ملعب رياضي", "قاعة رياضية"]
-                }
-            }, // <--- فاصلة هنا
+        name: "المرافق_الرياضية_والترفيهية", // <--- تأكد من تطابق هذا الاسم
+        keys: directMatchPropKeys,
+        keywords: {
+            // لا يزال من المفيد ذكر القيم المحتملة لـ 'نوع_1' هنا
+            // للتأكد من أن المعلم يقع ضمن الطبقة الرئيسية الصحيحة
+            // حتى لو لم نستخدم هذه القيم مباشرة للترميز الفرعي هنا.
+            'نوع_1': [
+                "رياضي وترفيهي", "سباحة", "كرة القدم", "رياضي", "ملاعب القرب",
+                "ملعب ترابي", "فضاءات ثقافية", "نادي", "خدمات ثقافية", "ثقافي",
+                "ترفيهي", "رياضي/ترفيهي"
+            ],
+            'leisure': ["pitch", "stadium", "sports_centre", "playground", "park", "garden", "theatre", "cinema", "community_centre", "social_club"],
+            'sport': ["soccer", "basketball", "tennis", "swimming", "athletics", "football"],
+            'amenity': ["theatre", "cinema", "community_centre", "arts_centre", "nightclub", "social_club"]
+        },
+        geomCheck: ["Point"]
+    }, // <--- فاصلة هنا
 
             // 6. شبكة الطرق
             { 
@@ -697,7 +723,51 @@ const detailedStyles = {
                     // This is hard to do without knowing the data, but the logs from getLayerNameFromProperties are key.
                 }
             });
+                
+            // ===================================================================
+            // == تعريف دالة المساعدة لتصنيف الفئات الفرعية للمرافق الرياضية ==
+            // ===================================================================
+            function getRecreationalSubcategory(type1Value) {
+                if (!type1Value) return "_default_sub_style";
+                const valueLower = String(type1Value).toLowerCase().trim();
 
+                // **مهم جداً: قم بتوسيع وتدقيق هذه الشروط لتناسب جميع قيم "نوع_1" في بياناتك**
+                if (valueLower.includes("ثقافي وترفيهي")) { // مثال: "مركز ثقافي وترفيهي"
+                    return "ثقافي وترفيهي";
+                }
+                if (valueLower.includes("رياضي") && valueLower.includes("ترفيهي")) { // مثال: "نادي رياضي وترفيهي"
+                    return "رياضي/ترفيهي";
+                }
+                // ضع الشروط الأكثر تحديدًا أولاً
+                if (valueLower === "فضاءات ثقافية" || valueLower === "خدمات ثقافية" || valueLower.includes("مكتبة")) {
+                    return "ثقافي";
+                }
+                if (valueLower.includes("ثقافي")) { // للحالات العامة مثل "ثقافي" فقط
+                    return "ثقافي";
+                }
+                if (valueLower === "سباحة" || valueLower.includes("كرة قدم") || valueLower.includes("ملاعب القرب") || valueLower.includes("ملعب ترابي")) {
+                    return "رياضي";
+                }
+                if (valueLower.includes("رياضي")) { // للحالات العامة مثل "رياضي" فقط أو "نادي رياضي"
+                     return "رياضي";
+                }
+                if (valueLower.includes("نادي") && !(valueLower.includes("رياضي") || valueLower.includes("ثقافي"))) { // إذا كان "نادي" فقط وليس محددًا
+                    return "رياضي/ترفيهي"; // أو أي فئة تراها مناسبة لـ "نادي" عام
+                }
+                if (valueLower.includes("ترفيهي")) { // "ترفيهي" فقط
+                    return "ثقافي وترفيهي"; // أو "رياضي/ترفيهي"
+                }
+                console.warn(`[SubCategory_Mapping] recreational type '${type1Value}' from 'نوع_1' could not be mapped. Using default for layer المرافق_الرياضية_والترفيهية.`);
+                return "_default_sub_style";
+            }
+             // دالة مشابهة ولكن لإرجاع اسم الفئة الفرعية للنافذة المنبثقة
+            function getRecreationalSubcategoryForPopup(type1Value) {
+                // يمكنك استخدام نفس منطق getRecreationalSubcategory أو تعديله قليلاً إذا أردت عرض اسم مختلف في النافذة
+                return getRecreationalSubcategory(type1Value); // حاليًا تستخدم نفس المنطق
+            }
+            // ===================================================================
+            // == نهاية تعريف دالة المساعدة ==
+            // ===================================================================
 
             for (const mainLayerName in featuresByMainLayer) {
                 if (featuresByMainLayer.hasOwnProperty(mainLayerName)) {
