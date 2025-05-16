@@ -39,11 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
         'lightningBolt': { type: 'svg', path: 'M7 2v11h3v9l7-12h-4l4-8z', viewBox: '0 0 24 24', defaultColor: '#FFFF00', defaultSize: 18 },
         'car': { type: 'svg', path: 'M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11C5.84 5 5.28 5.42 5.08 6.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5S18.33 16 17.5 16zM5 11l1.5-4.5h11L19 11H5z', viewBox: '0 0 24 24', defaultColor: '#FFFF00', defaultSize: 22 },
        'fuelPump': {
-    type: 'svg',
-    path: 'M_مسار_SVG_لمضخة_البنزين_هنا...', // ابحث عن SVG path مناسب
-    viewBox: '0 0 24 24', // أو ما يناسب الـ SVG path
-    defaultColor: '#D32F2F', // مثال: لون أحمر داكن
-    defaultSize: 22
+            type: 'svg',
+            path: 'M10 4.38v3.24c0 .9-.72 1.62-1.62 1.62H6.5c-.9 0-1.62-.72-1.62-1.62V4.38c0-.9.72-1.62 1.62-1.62h1.89c.9 0 1.62.72 1.62 1.62zm-.5-2.38H7c-1.1 0-2 .9-2 2v3.5c0 1.1.9 2 2 2h1.5c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm8.5 10.12V6.5C18 5.67 17.33 5 16.5 5H13v10.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V5c0-1.1-.9-2-2-2s-2 .9-2 2v11.5c0 1.93 1.57 3.5 3.5 3.5s3.5-1.57 3.5-3.5V13h1.5c.83 0 1.5-.67 1.5-1.5z', // مثال لمسار SVG
+            viewBox: '0 0 20 20', // قد تحتاج لتعديل viewBox
+            defaultColor: '#D32F2F',
+            defaultSize: 22
         } // <--- لا توجد فاصلة هنا لأن هذا هو آخر عنصر في الكائن
     };
   
@@ -136,12 +136,12 @@ const detailedStyles = {
         },
         defaultPointStyle: { symbol: 'pin', color: '#C0C0C0', size: 8 } // نمط افتراضي عام للطبقة
     },
-    "محطات_الوقود": { // مع شرطة سفلية
+    "محطات الوقود": { // مع شرطة سفلية
         displayName: "محطات الوقود",
         defaultPointStyle: {
             symbol: 'fuelPump', // أو 'pin'
             color: '#D32F2F',
-            size: 22
+            size: 20
         }
     },
     "التعليم والتكوين وتشغيل الكفاءات": {
@@ -517,16 +517,21 @@ const detailedStyles = {
             // --- أضف باقي تعريفات الطبقات هنا بنفس الطريقة ---
             // مثال:
             { 
-                        name: "محطات الوقود", 
-                keys: directMatchPropKeys, 
+                name: "محطات الوقود", // <--- اسم الطبقة بدون شرطة سفلية، يجب أن يطابق detailedStyles
+                keys: directMatchPropKeys,
                 keywords: {
-                    'amenity': ["fuel", "filling_station"], 
-                    'shop': ["fuel"], 
-                    'النوع': ["وقود", "محطة بنزين", "بنزين", "محطة وقود", "محروقات"], 
-                    'name': ["total", "shell", "afriquia", "محطة", "بترول", "غازوال", "station petrol"] // أضفت كلمات مفتاحية إضافية
-                    // يمكنك إضافة 'building':["fuel_station"] إذا كانت بعض بياناتك تحتوي على ذلك
-                }
-                // لا يوجد geomCheck ضروري هنا لأنها عادةً نقاط، ولكن يمكن أن تكون مضلعات صغيرة
+                    // إذا كان لديك حقل Path لهذه الطبقة، وكان اسم المجلد فيه "محطات الوقود"
+                    // فإن checkLayer سيلتقطه. إذا لم يكن هناك Path أو كان مختلفًا،
+                    // فسنعتمد على الكلمات المفتاحية أدناه.
+                    'اسم المحطة': ["بتروم", "أفريقيا", "طوطال", "انويف", "أولى إنيرجي", "شل", "محطة وقود", "محطة بنزين", "محطة"],
+                    'الشركة المالكة': ["بتروم", "أفريقيا", "طوطال", "انويف", "أولى إنيرجي", "شل"],
+                    // 'نوع الوقود': [], // يمكن إزالته إذا كان فارغًا دائمًا
+                    'الخدمات الإضافية': ["غسل السيارات", "وقود", "محروقات", "مقهى", "مسجد", "متجر"],
+                    'amenity': ["fuel", "filling_station", "charging_station"],
+                    'shop': ["fuel"],
+                    'building': ["fuel_station"]
+                },
+                geomCheck: ["Point"]
             }, // <--- فاصلة هنا لأن هناك طبقة أخرى بعدها
 
             { 
@@ -655,24 +660,37 @@ const detailedStyles = {
     }
 
     function createPopupContent(properties, mainLayerName) {
-        const mainLayerDisplayName = (detailedStyles[mainLayerName] && detailedStyles[mainLayerName].displayName) || mainLayerName;
+        // ... (تعديل createPopupContent كما في الرد السابق ليشمل getRecreationalSubcategoryForPopup إذا لزم الأمر) ...
+        // للتوضيح، سأبقيها كما هي في السكريبت الأصلي الذي قدمته، ولكن تذكر أنك قد تحتاج لتعديلها
+        // إذا أردت عرض أسماء الفئات الفرعية للمرافق الرياضية بشكل خاص.
+        const mainLayerConfigFromStyle = detailedStyles[mainLayerName];
+        const mainLayerDisplayName = (mainLayerConfigFromStyle && mainLayerConfigFromStyle.displayName) || mainLayerName;
         let content = `<b>${properties.الاسم || properties.name || properties.Nom || properties.NAME || 'معلم'}</b>`;
         content += `<br><small><i>(${mainLayerDisplayName})</i></small>`;
 
-        const mainLayerConfig = detailedStyles[mainLayerName];
         let subCategoryDisplayName = "";
-        if (mainLayerConfig && mainLayerConfig.subcategories) {
-            const subCategoryPropertyCandidates = ['النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'fclass', 'TYPE_VOIE', 'road_type', 'classification', 'amenity', 'shop', 'leisure', 'building']; // Added more candidates
+        // **منطقة مهمة للتحقق من أجل النافذة المنبثقة لمحطات الوقود**
+        if (mainLayerConfigFromStyle && mainLayerConfigFromStyle.subcategories) {
+            const subCategoryPropertyCandidates = ['نوع_1', 'نوع_الاستخدام', 'النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'fclass', 'TYPE_VOIE', 'road_type', 'classification', 'amenity', 'shop', 'leisure', 'building'];
             for (const propKey of subCategoryPropertyCandidates) {
                 if (properties[propKey]) {
                     const propValue = String(properties[propKey]).trim();
-                    if (mainLayerConfig.subcategories[propValue] && mainLayerConfig.subcategories[propValue].displayName) {
-                        subCategoryDisplayName = mainLayerConfig.subcategories[propValue].displayName;
+                    if (mainLayerConfigFromStyle.subcategories[propValue] && mainLayerConfigFromStyle.subcategories[propValue].displayName) {
+                        subCategoryDisplayName = mainLayerConfigFromStyle.subcategories[propValue].displayName;
                         break;
                     }
                 }
             }
+            // إذا كانت طبقة المرافق الرياضية ولم نجد تطابق مباشر
+            if (mainLayerName === "المرافق_الرياضية_والترفيهية" && !subCategoryDisplayName && properties['نوع_1'] && typeof getRecreationalSubcategoryForPopup === 'function') {
+                 const mappedSubCategoryKey = getRecreationalSubcategoryForPopup(properties['نوع_1']);
+                 if (mainLayerConfigFromStyle.subcategories[mappedSubCategoryKey] && mainLayerConfigFromStyle.subcategories[mappedSubCategoryKey].displayName) {
+                     subCategoryDisplayName = mainLayerConfigFromStyle.subcategories[mappedSubCategoryKey].displayName;
+                 }
+            }
         }
+        // **محطات الوقود ليس لديها فئات فرعية في detailedStyles حاليًا، لذا subCategoryDisplayName سيكون فارغًا لها**
+        // وهذا طبيعي بناءً على الإعداد الحالي.
         if (subCategoryDisplayName) {
             content += `<br><small><i>النوع: ${subCategoryDisplayName}</i></small>`;
         }
@@ -684,7 +702,8 @@ const detailedStyles = {
                  'الاسم', 'name', 'Nom', 'NAME', 'nom',
                  'النوع', 'SubCategory', 'type', 'Nature', 'طبيعة_المرفق', 'TYPE_VOIE', 'road_type', 'classification',
                  'amenity', 'shop', 'leisure', 'building', 'power', 'man_made', 'highway', 'traffic_sign', 'religion',
-                 'public_transport', 'office', 'landuse', 'place', 'emergency', 'sport' // Exclude more common classification keys
+                 'public_transport', 'office', 'landuse', 'place', 'emergency', 'sport',
+                 'نوع_1', 'نوع_الاستخدام', 'اسم المحطة', 'الشركة المالكة', 'الخدمات الإضافية', 'عدد المضخات' // استبعاد حقول محطات الوقود التي تم عرضها
                 ].includes(key) &&
                 properties[key] !== null && String(properties[key]).trim() !== "" && String(properties[key]).trim() !== " ") {
                 let displayKey = key.replace(/_/g, ' ');
@@ -692,11 +711,14 @@ const detailedStyles = {
                 content += `<br><b>${displayKey}:</b> ${properties[key]}`;
             }
         }
+        // إضافة حقول محطات الوقود المتبقية يدويًا إذا لم يتم عرضها
+        if (mainLayerName === "محطات الوقود") {
+            if (properties['الشركة المالكة'] && !content.includes('الشركة المالكة:')) content += `<br><b>الشركة المالكة:</b> ${properties['الشركة المالكة']}`;
+            if (properties['الخدمات الإضافية'] && !content.includes('الخدمات الإضافية:')) content += `<br><b>الخدمات الإضافية:</b> ${properties['الخدمات الإضافية']}`;
+            if (properties['عدد المضخات'] !== undefined && properties['عدد المضخات'] !== null && !content.includes('عدد المضخات:')) content += `<br><b>عدد المضخات:</b> ${properties['عدد المضخات']}`;
+        }
         return content;
     }
-
-    const createdLayers = {};
-    const layerControlEntries = {};
 
     fetch('Attaouia_GeoData.geojson')
         .then(response => {
@@ -753,40 +775,19 @@ const detailedStyles = {
             function getRecreationalSubcategory(type1Value) {
                 if (!type1Value) return "_default_sub_style";
                 const valueLower = String(type1Value).toLowerCase().trim();
-
-                // **مهم جداً: قم بتوسيع وتدقيق هذه الشروط لتناسب جميع قيم "نوع_1" في بياناتك**
-                if (valueLower.includes("ثقافي وترفيهي")) { // مثال: "مركز ثقافي وترفيهي"
-                    return "ثقافي وترفيهي";
-                }
-                if (valueLower.includes("رياضي") && valueLower.includes("ترفيهي")) { // مثال: "نادي رياضي وترفيهي"
-                    return "رياضي/ترفيهي";
-                }
-                // ضع الشروط الأكثر تحديدًا أولاً
-                if (valueLower === "فضاءات ثقافية" || valueLower === "خدمات ثقافية" || valueLower.includes("مكتبة")) {
-                    return "ثقافي";
-                }
-                if (valueLower.includes("ثقافي")) { // للحالات العامة مثل "ثقافي" فقط
-                    return "ثقافي";
-                }
-                if (valueLower === "سباحة" || valueLower.includes("كرة قدم") || valueLower.includes("ملاعب القرب") || valueLower.includes("ملعب ترابي")) {
-                    return "رياضي";
-                }
-                if (valueLower.includes("رياضي")) { // للحالات العامة مثل "رياضي" فقط أو "نادي رياضي"
-                     return "رياضي";
-                }
-                if (valueLower.includes("نادي") && !(valueLower.includes("رياضي") || valueLower.includes("ثقافي"))) { // إذا كان "نادي" فقط وليس محددًا
-                    return "رياضي/ترفيهي"; // أو أي فئة تراها مناسبة لـ "نادي" عام
-                }
-                if (valueLower.includes("ترفيهي")) { // "ترفيهي" فقط
-                    return "ثقافي وترفيهي"; // أو "رياضي/ترفيهي"
-                }
-                console.warn(`[SubCategory_Mapping] recreational type '${type1Value}' from 'نوع_1' could not be mapped. Using default for layer المرافق_الرياضية_والترفيهية.`);
+                if (valueLower.includes("ثقافي وترفيهي")) return "ثقافي وترفيهي";
+                if (valueLower.includes("رياضي") && valueLower.includes("ترفيهي")) return "رياضي/ترفيهي";
+                if (valueLower === "فضاءات ثقافية" || valueLower === "خدمات ثقافية" || valueLower.includes("مكتبة")) return "ثقافي";
+                if (valueLower.includes("ثقافي")) return "ثقافي";
+                if (valueLower === "سباحة" || valueLower.includes("كرة قدم") || valueLower.includes("ملاعب القرب") || valueLower.includes("ملعب ترابي")) return "رياضي";
+                if (valueLower.includes("رياضي")) return "رياضي";
+                if (valueLower.includes("نادي") && !(valueLower.includes("رياضي") || valueLower.includes("ثقافي"))) return "رياضي/ترفيهي";
+                if (valueLower.includes("ترفيهي")) return "ثقافي وترفيهي";
+                console.warn(`[SubCategory_Mapping] recreational type '${type1Value}' from 'نوع_1' could not be mapped for المرافق_الرياضية_والترفيهية. Using default.`);
                 return "_default_sub_style";
             }
-             // دالة مشابهة ولكن لإرجاع اسم الفئة الفرعية للنافذة المنبثقة
-            function getRecreationalSubcategoryForPopup(type1Value) {
-                // يمكنك استخدام نفس منطق getRecreationalSubcategory أو تعديله قليلاً إذا أردت عرض اسم مختلف في النافذة
-                return getRecreationalSubcategory(type1Value); // حاليًا تستخدم نفس المنطق
+            function getRecreationalSubcategoryForPopup(type1Value) { // <--- إضافة هذه الدالة
+                return getRecreationalSubcategory(type1Value);
             }
             // ===================================================================
             // == نهاية تعريف دالة المساعدة ==
