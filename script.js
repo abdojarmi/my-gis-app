@@ -720,6 +720,9 @@ const detailedStyles = {
         return content;
     }
 
+    const createdLayers = {};
+    const layerControlEntries = {};
+        
     fetch('Attaouia_GeoData.geojson')
         .then(response => {
             if (!response.ok) throw new Error(`Network error: ${response.status} ${response.statusText}`);
