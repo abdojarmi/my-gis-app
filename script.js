@@ -340,17 +340,30 @@ const detailedStyles = {
                 }
             }
 
-            // 2. Check Path for the exact layer name as a segment or in jarmi/LayerName structure
+            // 2. Check Path for the layer name (handling space/underscore difference)
             if (pathCheck && properties.Path && typeof properties.Path === 'string') {
                 const pathSegments = properties.Path.split(/[\\\/]/);
-                if (pathSegments.some(segment => String(segment).trim() === targetLayerName)) {
-                    console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via path segment.`);
+                // targetLayerName هو الاسم من detailedStyles (قد يحتوي على مسافات)
+                const targetLayerNameUnderscore = targetLayerName.replace(/ /g, '_'); // نسخة بشرطة سفلية
+                const targetLayerNameSpace = targetLayerName.replace(/_/g, ' ');     // نسخة بمسافة (لضمان)
+
+                if (pathSegments.some(segment => {
+                    const trimmedSegment = String(segment).trim();
+                    return trimmedSegment === targetLayerName || // يطابق الاسم كما هو (بمسافة أو شرطة حسب detailedStyles)
+                           trimmedSegment === targetLayerNameUnderscore || // يطابق الاسم بشرطة سفلية
+                           trimmedSegment === targetLayerNameSpace;       // يطابق الاسم بمسافة
+                })) {
+                    console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via path segment (flexible matching).`);
                     return targetLayerName;
                 }
+
                 const jarmiIndex = pathSegments.findIndex(part => String(part).toLowerCase() === 'jarmi');
                 if (jarmiIndex !== -1 && pathSegments.length > jarmiIndex + 1) {
-                    if (String(pathSegments[jarmiIndex + 1]).trim() === targetLayerName) {
-                        console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via jarmi/path structure.`);
+                    const segmentAfterJarmi = String(pathSegments[jarmiIndex + 1]).trim();
+                    if (segmentAfterJarmi === targetLayerName ||
+                        segmentAfterJarmi === targetLayerNameUnderscore ||
+                        segmentAfterJarmi === targetLayerNameSpace) {
+                        console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via jarmi/path structure (flexible matching).`);
                         return targetLayerName;
                     }
                 }
@@ -499,24 +512,34 @@ const detailedStyles = {
             }, // <--- فاصلة هنا
 
             // 5. المرافق الرياضية والترفيهية
-            { 
-        name: "المرافق_الرياضية_والترفيهية", // <--- تأكد من تطابق هذا الاسم
-        keys: directMatchPropKeys,
-        keywords: {
-            // لا يزال من المفيد ذكر القيم المحتملة لـ 'نوع_1' هنا
-            // للتأكد من أن المعلم يقع ضمن الطبقة الرئيسية الصحيحة
-            // حتى لو لم نستخدم هذه القيم مباشرة للترميز الفرعي هنا.
-            'نوع_1': [
-                "رياضي وترفيهي", "سباحة", "كرة القدم", "رياضي", "ملاعب القرب",
-                "ملعب ترابي", "فضاءات ثقافية", "نادي", "خدمات ثقافية", "ثقافي",
-                "ترفيهي", "رياضي/ترفيهي"
-            ],
-            'leisure': ["pitch", "stadium", "sports_centre", "playground", "park", "garden", "theatre", "cinema", "community_centre", "social_club"],
-            'sport': ["soccer", "basketball", "tennis", "swimming", "athletics", "football"],
-            'amenity': ["theatre", "cinema", "community_centre", "arts_centre", "nightclub", "social_club"]
-        },
-        geomCheck: ["Point"]
-    }, // <--- فاصلة هنا
+            {
+                name: "المرافق الرياضية والترفيهية", // الاسم من detailedStyles (مع مسافة)
+                                                       // دالة checkLayer ستستخدم هذا الاسم للبحث في Path (بشكلها الافتراضي)
+                                                       // وأيضًا للبحث في الخصائص المباشرة في directMatchPropKeys
+                keys: directMatchPropKeys,
+                keywords: {
+                    // يمكننا إضافة كلمات مفتاحية من 'نوع_1' كدعم إضافي،
+                    // لكن الاعتماد الرئيسي سيكون على Path أو اسم الطبقة المباشر.
+                    'نوع_1': [
+                        "رياضي وترفيهي", "سباحة", "كرة القدم", "رياضي", "ملاعب القرب",
+                        "ملعب ترابي", "فضاءات ثقافية", "نادي", "خدمات ثقافية", "ثقافي",
+                        "ترفيهي", "رياضي/ترفيهي"
+                        // أضف أي قيم أخرى فريدة لـ 'نوع_1' تظهر فقط في هذه الطبقة
+                    ],
+                    // كلمات مفتاحية عامة من OSM tags إذا كانت بياناتك قد تحتوي عليها
+                    'leisure': ["pitch", "stadium", "sports_centre", "playground", "fitness_centre", "sports_hall", "track", "swimming_pool", "ice_rink", "dance_hall", "golf_course", "miniature_golf", "park", "garden", "theatre", "cinema", "community_centre", "social_club", "arts_centre", "club"],
+                    'sport': ["soccer", "basketball", "tennis", "swimming", "athletics", "football", "volleyball", "handball", "martial_arts", "gymnastics", "equestrian", "skating", "climbing"],
+                    'amenity': ["theatre", "cinema", "community_centre", "arts_centre", "nightclub", "social_club", "public_bath", "library", "events_venue", "conference_centre"], // Library قد تكون هنا أو مع التعليم
+                    'building': ["stadium", "sports_hall", "grandstand", "pavilion", "riding_hall", "club_house", "community_centre", "theatre", "public_bath"],
+
+                    // محاولة مطابقة اسم الطبقة بالشرطة السفلية إذا كان موجودًا في خصائص معينة
+                    'layer': ["المرافق_الرياضية_والترفيهية"],
+                    'LAYER': ["المرافق_الرياضية_والترفيهية"],
+                    'Name': ["المرافق_الرياضية_والترفيهية"],
+                    'NAME': ["المرافق_الرياضية_والترفيهية"]
+                },
+                geomCheck: ["Point"] // بناءً على الجدول الوصفي، المعالم هي نقاط
+            },
 
             // 6. شبكة الطرق
             { 
