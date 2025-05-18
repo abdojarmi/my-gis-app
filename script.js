@@ -326,65 +326,75 @@ const detailedStyles = {
         defaultLinePolyStyle: { color: "#999999", weight: 1.5, dashArray: '3,3', opacity: 0.6, fillOpacity: 0.2 }
     }
 };
-function getLayerNameFromProperties(properties) {
-    const knownMainLayers = Object.keys(detailedStyles).filter(k => k !== "طبقة غير مصنفة");
-    const featureId = properties.OBJECTID || properties.id || properties.ID || 'UnknownID';
+    function getLayerNameFromProperties(properties) {
+        const knownMainLayers = Object.keys(detailedStyles).filter(k => k !== "طبقة غير مصنفة");
+        const featureId = properties.OBJECTID || properties.id || properties.ID || 'UnknownID'; // For logging
 
-    // 1️⃣ التصنيف عبر المسار Path
-    if (properties.Path && typeof properties.Path === 'string') {
-        const pathSegments = properties.Path.split(/[\\\/]/); 
-        const jarmiIndex = pathSegments.findIndex(part => String(part).toLowerCase() === 'jarmi');
-        if (jarmiIndex !== -1 && pathSegments.length > jarmiIndex + 1) {
-            const segment = String(pathSegments[jarmiIndex + 1]).trim();
-            const matched = knownMainLayers.find(name =>
-                name === segment ||
-                name.replace(/ /g, '_') === segment ||
-                name.replace(/_/g, ' ') === segment
-            );
-            if (matched) {
-                console.log(`[✔️ PATH MATCH] '${segment}' → '${matched}'`);
-                return matched;
+        // Helper function to check for a layer name in various common properties or path
+        const checkLayer = (targetLayerName, propKeysForExactMatch, keywordMap = {}, pathCheck = true) => {
+            // 1. Check direct property exact matches
+            for (const key of propKeysForExactMatch) {
+                if (properties[key] && String(properties[key]).trim() === targetLayerName) {
+                    console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via exact property '${key}'='${properties[key]}'`);
+                    return targetLayerName;
+                }
             }
-        }
-    }
 
-    // 2️⃣ تصنيف بالكلمات المفتاحية للطبقات (عند غياب Path)
-    const keywordMap = {
-        "محطات الوقود": ["وقود", "محطة", "بنزين", "بتروم", "شل", "أفريقيا"],
-        "المرافق الرياضية والترفيهية": ["رياضي", "ترفيهي", "ثقافي", "ملعب", "نادي", "مسبح"],
-        "حدود إدارية العطاوية": ["حدود", "إدارية", "بلدية", "جماعة"],
-        "الادارات الترابية": ["جماعة", "باشوية", "قيادة", "دائرة", "ملحقة"],
-        "توزيع الماء والكهرباء": ["ماء", "كهرباء", "محول", "خزان", "توزيع"],
-        "المرافق التجارية": ["تجاري", "دكان", "متجر", "بقالة"],
-        "الخدمات الدينية": ["مسجد", "مقبرة", "زاوية", "مصلى"],
-        "الصحة والمجال الاجتماعي": ["صحي", "مستوصف", "مستشفى", "اجتماعي"],
-        "التعليم والتكوين وتشغيل الكفاءات": ["مدرسة", "تعليم", "معهد", "جامعة", "تكوين", "تدريب"]
-    };
+            // 2. Check Path for the layer name (handling space/underscore difference)
+            if (pathCheck && properties.Path && typeof properties.Path === 'string') {
+                const pathSegments = properties.Path.split(/[\\\/]/);
+                // targetLayerName هو الاسم من detailedStyles (قد يحتوي على مسافات)
+                const targetLayerNameUnderscore = targetLayerName.replace(/ /g, '_'); // نسخة بشرطة سفلية
+                const targetLayerNameSpace = targetLayerName.replace(/_/g, ' ');     // نسخة بمسافة (لضمان)
 
-    for (const [layerName, keywords] of Object.entries(keywordMap)) {
-        for (const key in properties) {
-            const val = String(properties[key] || "").toLowerCase();
-            if (keywords.some(kw => val.includes(kw))) {
-                console.log(`[✔️ KEYWORD MATCH] '${featureId}' → '${layerName}' via '${key}'`);
-                return layerName;
+                if (pathSegments.some(segment => {
+                    const trimmedSegment = String(segment).trim();
+                    return trimmedSegment === targetLayerName || // يطابق الاسم كما هو (بمسافة أو شرطة حسب detailedStyles)
+                           trimmedSegment === targetLayerNameUnderscore || // يطابق الاسم بشرطة سفلية
+                           trimmedSegment === targetLayerNameSpace;       // يطابق الاسم بمسافة
+                })) {
+                    console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via path segment (flexible matching).`);
+                    return targetLayerName;
+                }
+
+                const jarmiIndex = pathSegments.findIndex(part => String(part).toLowerCase() === 'jarmi');
+                if (jarmiIndex !== -1 && pathSegments.length > jarmiIndex + 1) {
+                    const segmentAfterJarmi = String(pathSegments[jarmiIndex + 1]).trim();
+                    if (segmentAfterJarmi === targetLayerName ||
+                        segmentAfterJarmi === targetLayerNameUnderscore ||
+                        segmentAfterJarmi === targetLayerNameSpace) {
+                        console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via jarmi/path structure (flexible matching).`);
+                        return targetLayerName;
+                    }
+                }
             }
-        }
-    }
+            
+            // 3. Check for keywords in specified properties
+            // keywordMap = { 'propertyName': ['keyword1', 'keyword2'], ... }
+            for (const propName in keywordMap) {
+                if (properties[propName]) {
+                    const propValue = String(properties[propName]).toLowerCase().trim();
+                    for (const keyword of keywordMap[propName]) {
+                        if (propValue.includes(keyword.toLowerCase())) {
+                            // Special condition for boundaries (must be line/poly)
+                            if (targetLayerName === "حدود إدارية العطاوية") {
+                                if (properties.geometry && (properties.geometry.type.includes("LineString") || properties.geometry.type.includes("Polygon"))) {
+                                     console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via keyword '${keyword}' in property '${propName}' (Geometry check passed).`);
+                                    return targetLayerName;
+                                }
+                            } else {
+                                console.log(`[CLASSIFICATION_DEBUG] Feature ID ${featureId}: Matched '${targetLayerName}' via keyword '${keyword}' in property '${propName}'.`);
+                                return targetLayerName;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        };
 
-    // 3️⃣ مطابقة خاصة للحدود الإدارية (حتى بدون خصائص)
-    if (
-        properties.Shape_Length && properties.Shape_Area &&
-        properties.Shape_Length > 10000 && properties.Shape_Area > 10000000 &&
-        (properties.Shape === "Polygon" || (properties.geometry && properties.geometry.type === "Polygon"))
-    ) {
-        console.log(`[✔️ SPECIAL MATCH] Feature with area ${properties.Shape_Area} → 'حدود إدارية العطاوية'`);
-        return "حدود إدارية العطاوية";
-    }
-
-    // 4️⃣ فشل التصنيف
-    console.warn(`[⚠️ UNCLASSIFIED] Feature ID ${featureId} → طبقة غير مصنفة`);
-    return "طبقة غير مصنفة";
-}
+        const directMatchPropKeys = ['MainCategory', 'LayerGroup', 'اسم_الطبقة_الرئيسي', 'layer_name_principal', 'layer', 'LAYER', 'nom_couche', 'Name', 'NAME', 'اسم_الطبقة'];
+        let result;
 
         // =================== هذا هو المكان الذي تضع فيه مصفوفة layerChecks الجديدة والشروط الاحتياطية ===================
         const layerChecks = [ // <--- بداية المصفوفة (قوس مربع مفتوح)
