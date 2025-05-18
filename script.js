@@ -1182,4 +1182,4 @@ if (exportButton && mapElement && legendElementForPdf) { // Use legendElementFor
             alert("شكراً على تعليقك!");
         };
     }
-});
+  });
