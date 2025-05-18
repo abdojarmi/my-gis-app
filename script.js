@@ -395,7 +395,6 @@ const detailedStyles = {
 
         const directMatchPropKeys = ['MainCategory', 'LayerGroup', 'اسم_الطبقة_الرئيسي', 'layer_name_principal', 'layer', 'LAYER', 'nom_couche', 'Name', 'NAME', 'اسم_الطبقة'];
         let result;
-
         // =================== هذا هو المكان الذي تضع فيه مصفوفة layerChecks الجديدة والشروط الاحتياطية ===================
         const layerChecks = [ // <--- بداية المصفوفة (قوس مربع مفتوح)
             // 1. طبقة المباني و أحياء (بناءً على Console)
@@ -697,6 +696,7 @@ const detailedStyles = {
 
         console.warn(`[UNCLASSIFIED_FEATURE_PROPS] Feature ID ${featureId} fell into 'طبقة غير مصنفة'. Properties:`, JSON.parse(JSON.stringify(properties)));
         return "طبقة غير مصنفة";
+    }
 
     function createPopupContent(properties, mainLayerName) {
         // ... (تعديل createPopupContent كما في الرد السابق ليشمل getRecreationalSubcategoryForPopup إذا لزم الأمر) ...
@@ -1182,4 +1182,4 @@ if (exportButton && mapElement && legendElementForPdf) { // Use legendElementFor
             alert("شكراً على تعليقك!");
         };
     }
-  });
+});
