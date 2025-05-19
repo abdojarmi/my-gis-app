@@ -734,7 +734,6 @@ const detailedStyles = {
 
         console.warn(`[UNCLASSIFIED_FEATURE_PROPS] Feature ID ${featureId} fell into 'طبقة غير مصنفة'. Properties:`, JSON.parse(JSON.stringify(properties)));
         return "طبقة غير مصنفة";
-    }
 
     function createPopupContent(properties, mainLayerName) {
         // ... (تعديل createPopupContent كما في الرد السابق ليشمل getRecreationalSubcategoryForPopup إذا لزم الأمر) ...
