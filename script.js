@@ -645,6 +645,7 @@ const detailedStyles = {
                     'utility': ['water', 'power', 'electricity', 'energy'],
                     'operator': ['onee', 'radeema', 'radeef', 'amendis'] // مشغلون معروفون في المغرب
                     // 'building': ['substation', 'water_tower'] // إذا كانت بعض هذه المرافق توصف كنوع مبنى
+                  }   
             }, // <--- فاصلة هنا إذا كانت هناك طبقات أخرى بعدها
     {
         name: "النقل", // يجب أن يطابق اسم المفتاح في detailedStyles
