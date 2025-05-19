@@ -689,7 +689,7 @@ const detailedStyles = {
             } 
             // ... إذا كانت هناك طبقات أخرى، أضف فاصلة واستمر ...
             
-        ]; // <--- نهاية المصفوفة (قوس مربع مغلق)
+      
         for (const check of layerChecks) {
             result = checkLayer(check.name, check.keys, check.keywords, true);
             if (result) return result;
