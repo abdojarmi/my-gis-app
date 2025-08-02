@@ -39,7 +39,7 @@ function getColor(funder) {
 }
 
 // 4. جلب بيانات GeoJSON وإضافتها إلى الخريطة
-fetch('data.geojson') // تأكد من أن اسم الملف صحيح
+fetch('CombinedDataIMAGINEPsycho2025.geojson') // تأكد من أن اسم الملف صحيح
     .then(response => response.json())
     .then(data => {
         L.geoJSON(data, {
