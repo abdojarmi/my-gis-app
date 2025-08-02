@@ -4,35 +4,23 @@
   <meta charset="utf-8" />
   <title>خريطة مشاريع منظمة الأطلس الكبير</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    #map { height: 100vh; margin: 0; padding: 0; }
-    body { margin: 0; font-family: Arial, sans-serif; }
-  </style>
+
+  <!-- 1. رابط مكتبة Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- 2. رابط ملف التنسيق الخاص بالخريطة (الذي ستنشئه) -->
+  <link rel="stylesheet" href="map-style.css" />
+
 </head>
 <body>
+  
   <div id="map"></div>
 
+  <!-- 3. رابط مكتبة Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script>
-    var map = L.map('map').setView([31.62, -7.59], 6); // يتمركز على المغرب
+  
+  <!-- 4. رابط ملف الجافا سكريبت الخاص بالخريطة (الذي ستنشئه) -->
+  <script src="map-script.js"></script>
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    // تحميل بيانات GeoJSON من نفس المستودع
-    fetch('points.geojson')
-      .then(response => response.json())
-      .then(data => {
-        L.geoJSON(data, {
-          onEachFeature: function (feature, layer) {
-            const props = feature.properties;
-            let popupContent = `<strong>${props.name || "بدون اسم"}</strong><br>${props.description || ""}`;
-            layer.bindPopup(popupContent);
-          }
-        }).addTo(map);
-      });
-  </script>
 </body>
 </html>
