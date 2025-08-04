@@ -1,59 +1,60 @@
-/* ضبط الخريطة لتملأ الشاشة بالكامل */
-body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: Arial, sans-serif;
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
 }
 
 #map {
-    height: 100vh; /* vh تعني ارتفاع نافذة العرض */
-    width: 100%;
+  height: 100vh;
+  width: 100%;
+}
+
+/* تنسيق حاوية الفرز */
+#filter-container {
+  position: absolute;
+  top: 10px;
+  left: 50px; /* لتجنب تداخلها مع أزرار التكبير */
+  z-index: 1000; /* للتأكد من أنها فوق الخريطة */
+  background-color: white;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+}
+
+#filter-container label {
+  margin-left: 5px;
+}
+
+/* تنسيق النافذة المنبثقة */
+.leaflet-popup-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.leaflet-popup-content td {
+  padding: 4px;
+  border: 1px solid #ddd;
+}
+.leaflet-popup-content strong {
+  white-space: nowrap;
 }
 
 /* تنسيق مفتاح الخريطة */
-.legend {
-    padding: 10px;
-    font-size: 14px;
-    line-height: 20px;
-    color: #555;
-    background: white;
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    max-height: 400px; /* تحديد أقصى ارتفاع */
-    overflow-y: auto; /* إضافة شريط تمرير إذا زاد المحتوى */
+.info.legend {
+  padding: 6px 8px;
+  font: 14px/16px Arial, Helvetica, sans-serif;
+  background: rgba(255,255,255,0.8);
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  border-radius: 5px;
 }
-
 .legend h4 {
-    margin-top: 0;
-    margin-bottom: 5px;
-    font-size: 16px;
-    text-align: center;
+  margin: 0 0 5px;
+  color: #333;
 }
-
 .legend i {
-    width: 18px;
-    height: 18px;
-    float: left;
-    margin-right: 8px;
-    opacity: 0.9;
-    border-radius: 50%; /* لجعل مربع اللون دائريًا */
-    border: 1px solid #777;
-}
-
-/* تنسيق النوافذ المنبثقة */
-.leaflet-popup-content-wrapper {
-    border-radius: 5px;
-}
-
-.leaflet-popup-content {
-    font-size: 13px;
-    /* لجعل النافذة المنبثقة تدعم العربية بشكل أفضل */
-    direction: ltr; 
-    text-align: left;
-}
-
-.leaflet-popup-content strong {
-    color: #333;
+  width: 18px;
+  height: 18px;
+  float: right; /* ليتناسب مع التخطيط العربي */
+  margin-left: 8px;
+  opacity: 0.85;
 }
