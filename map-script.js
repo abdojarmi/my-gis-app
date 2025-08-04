@@ -1,16 +1,16 @@
-// 1. تهيئة الخريطة وتحديد مركزها على المغرب
+// 1. Initialize map and set its view to Morocco
 const map = L.map('map').setView([31.7917, -7.0926], 6);
 
-// 2. إضافة طبقة الخريطة الأساسية (OpenStreetMap)
+// 2. Add base map layer (OpenStreetMap)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
-// متغيرات للاحتفاظ بطبقة البيانات والبيانات الأصلية
+// Variables to hold the GeoJSON layer and the original data
 let geojsonLayer;
 let originalData;
 
-// 3. تحديد ألوان لكل جهة ممولة
+// 3. Define colors for each funder
 const funderColors = {
     "NED": "#e41a1c", "HAF": "#377eb8", "L'oreal": "#4daf4a", "Credit agricole": "#984ea3",
     "FRE SKIN CARE": "#ff7f00", "MEPI": "#ffff33", "UNDP": "#a65628", "PUR Project (Carbon)": "#f781bf",
@@ -21,15 +21,20 @@ const funderColors = {
     "Muslim AID": "#bc80bd", "Taalim Delegation &JDC": "#ccebc5", "Other/N/A": "#808080"
 };
 
-// دالة مساعدة للحصول على اللون بناءً على اسم الممول
+// Helper function to get color based on funder name
 function getColor(funder) {
     return funderColors[funder] || funderColors["Other/N/A"];
 }
 
-// دالة لإنشاء طبقة GeoJSON مع التنسيق والنوافذ المنبثقة
+// Helper function to format property keys for display (e.g., 'Funded_by_whom_' -> 'Funded By Whom')
+function formatKey(key) {
+    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
+}
+
+// Function to create a GeoJSON layer with styling and popups
 function createGeoJsonLayer(data) {
     return L.geoJSON(data, {
-        // أ. تنسيق كل نقطة (تلوينها)
+        // a. Style each point (marker)
         pointToLayer: function(feature, latlng) {
             return L.circleMarker(latlng, {
                 radius: 7,
@@ -40,51 +45,49 @@ function createGeoJsonLayer(data) {
                 fillOpacity: 0.85
             });
         },
-        // ب. إضافة نافذة منبثقة لكل نقطة
+        // b. Add a popup to each point
         onEachFeature: function(feature, layer) {
             const props = feature.properties;
             if (props) {
-                // تعديل: بناء محتوى النافذة بشكل ديناميكي لعرض كل البيانات
+                // Dynamically build a table for the popup with all feature properties
                 let popupContent = '<table>';
                 for (const key in props) {
-                    const formattedKey = key.replace(/_/g, ' '); // تحسين شكل المفاتيح
-                    popupContent += `<tr><td><strong>${formattedKey}:</strong></td><td>${props[key] || 'N/A'}</td></tr>`;
+                    popupContent += `<tr><td><strong>${formatKey(key)}:</strong></td><td>${props[key] || 'N/A'}</td></tr>`;
                 }
                 popupContent += '</table>';
-                layer.bindPopup(popupContent, { maxHeight: 300 }); // تحديد أقصى ارتفاع للنافذة
+                layer.bindPopup(popupContent, { maxHeight: 300 }); // Set max height for scrollable popup
             }
         }
     });
 }
 
-// 4. جلب بيانات GeoJSON وإضافتها إلى الخريطة
+// 4. Fetch GeoJSON data and add it to the map
 fetch('CombinedDataIMAGINEPsycho2025.geojson')
     .then(response => response.json())
     .then(data => {
-        originalData = data; // تخزين البيانات الأصلية كاملة
+        originalData = data; // Store the full original dataset
         
-        // عرض جميع النقاط في البداية
+        // Initially display all points
         geojsonLayer = createGeoJsonLayer(originalData).addTo(map);
 
-        // جديد: إنشاء قائمة الفرز بناءً على الممولين
+        // Create the funder filter control
         createFunderFilter(originalData);
     })
-    .catch(error => console.error('خطأ في تحميل ملف GeoJSON:', error));
+    .catch(error => console.error('Error loading GeoJSON file:', error));
 
-// 5. جديد: دالة لإنشاء قائمة الفرز (الفلتر)
+// 5. NEW: Function to create the filter control
 function createFunderFilter(data) {
     const filterContainer = document.getElementById('filter-container');
-    // استخراج أسماء الممولين الفريدة من البيانات وإضافة خيار "جميع الممولين"
-    const funders = ['جميع الممولين', ...new Set(data.features.map(f => f.properties.Funded_by_whom_).filter(f => f))];
+    // Extract unique funder names and add an "All Funders" option
+    const funders = ['All Funders', ...new Set(data.features.map(f => f.properties.Funded_by_whom_).filter(f => f))];
 
     const label = document.createElement('label');
     label.htmlFor = 'funder-filter';
-    label.innerText = 'الفرز حسب الممول:';
+    label.innerText = 'Filter by Funder:'; // English label
 
     const select = document.createElement('select');
     select.id = 'funder-filter';
-    // عند تغيير القيمة، يتم تحديث الخريطة
-    select.onchange = updateMap;
+    select.onchange = updateMap; // Update map when selection changes
 
     funders.forEach(funder => {
         const option = document.createElement('option');
@@ -97,42 +100,42 @@ function createFunderFilter(data) {
     filterContainer.appendChild(select);
 }
 
-// 6. جديد: دالة لتحديث الخريطة بناءً على اختيار الفلتر
+// 6. NEW: Function to update the map based on the filter selection
 function updateMap() {
     const selectedFunder = document.getElementById('funder-filter').value;
 
-    // إزالة الطبقة القديمة من الخريطة
+    // Remove the old layer from the map
     if (geojsonLayer) {
         map.removeLayer(geojsonLayer);
     }
 
     let filteredData;
-    if (selectedFunder === 'جميع الممولين') {
-        filteredData = originalData;
+    if (selectedFunder === 'All Funders') {
+        filteredData = originalData; // Show all data
     } else {
-        // فرز البيانات لعرض الممول المختار فقط
+        // Filter data to show only the selected funder
         filteredData = {
             ...originalData,
             features: originalData.features.filter(f => f.properties.Funded_by_whom_ === selectedFunder)
         };
     }
 
-    // إنشاء طبقة جديدة بالبيانات المفرزة وإضافتها إلى الخريطة
+    // Create a new layer with the filtered data and add it to the map
     geojsonLayer = createGeoJsonLayer(filteredData).addTo(map);
 }
 
-// 7. إنشاء مفتاح الخريطة
+// 7. Create the map legend
 const legend = L.control({ position: 'bottomright' });
 legend.onAdd = function(map) {
     const div = L.DomUtil.create('div', 'info legend');
     const funders = Object.keys(funderColors).filter(f => f !== 'Other/N/A');
     
-    div.innerHTML += '<h4>الجهات الممولة</h4>';
+    div.innerHTML += '<h4>Funded By</h4>'; // English title
 
     for (let i = 0; i < funders.length; i++) {
         div.innerHTML += `<i style="background:${getColor(funders[i])}"></i> ${funders[i]}<br>`;
     }
-    div.innerHTML += `<i style="background:${getColor('Other/N/A')}"></i> أخرى/غير محدد<br>`;
+    div.innerHTML += `<i style="background:${getColor('Other/N/A')}"></i> Other/N/A<br>`;
 
     return div;
 };
