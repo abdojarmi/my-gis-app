@@ -58,3 +58,27 @@ body {
   margin-right: 8px; /* Corrected for LTR layout */
   opacity: 0.85;
 }
+
+/* --- الأسطر الجديدة المضافة هنا --- */
+
+/* Style for the logo container */
+#logo-container {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1001; /* Place it above other controls */
+}
+
+#logo-container img {
+  width: 280px; /* You can adjust the width as needed */
+  height: auto;
+  background-color: rgba(255, 255, 255, 0.75); /* Semi-transparent background for better visibility */
+  padding: 5px;
+  border-radius: 5px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  transition: transform 0.2s ease-in-out;
+}
+
+#logo-container img:hover {
+    transform: scale(1.05); /* Slight zoom effect on hover */
+}
