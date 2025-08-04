@@ -27,19 +27,31 @@ body {
 }
 
 /* Style for the popup content */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px; /* يجعل الزوايا أكثر نعومة */
+}
+.leaflet-popup-content {
+  margin: 15px !important;
+}
 .leaflet-popup-content table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed; /* يمنع الأعمدة من أن تصبح أوسع من اللازم */
 }
 .leaflet-popup-content td {
-  padding: 4px;
+  padding: 5px;
   border: 1px solid #ddd;
-}
-.leaflet-popup-content strong {
-  white-space: nowrap;
+  word-break: break-word; /* الأهم: يسمح بكسر الكلمات الطويلة جداً */
 }
 
-/* Style for the map legend */
+/* تمت إزالة خاصية "white-space: nowrap;" من هنا لجعل النص يلتف */
+.leaflet-popup-content strong {
+  color: #333;
+}
+
+
+/* Style for the map legend and logo */
+/* ... (باقي الكود يبقى كما هو) ... */
 .info.legend {
   padding: 6px 8px;
   font: 14px/16px Arial, Helvetica, sans-serif;
@@ -54,23 +66,22 @@ body {
 .legend i {
   width: 18px;
   height: 18px;
-  float: left; /* Corrected for LTR layout */
-  margin-right: 8px; /* Corrected for LTR layout */
+  float: left;
+  margin-right: 8px;
   opacity: 0.85;
 }
 
-/* Style for the logo container */
 #logo-container {
   position: absolute;
-  top: 00px;
+  top: 0px;
   right: 10px;
-  z-index: 1001; /* Place it above other controls */
+  z-index: 1001;
 }
 
 #logo-container img {
-  width: 280px; /* You can adjust the width as needed */
+  width: 280px;
   height: auto;
-  background-color: rgba(255, 255, 255, 0.75); /* Semi-transparent background for better visibility */
+  background-color: rgba(255, 255, 255, 0.75);
   padding: 0;
   border-radius: 5px;
   box-shadow: 0 1px 5px rgba(0,0,0,0.4);
@@ -78,15 +89,13 @@ body {
 }
 
 #logo-container img:hover {
-    transform: scale(1.05); /* Slight zoom effect on hover */
+    transform: scale(1.05);
 }
 
-/* Move the legend down to make space for the logo above it */
 .leaflet-top.leaflet-right .leaflet-control {
-    margin-top: 95px; /* You can adjust this value if needed */
+    margin-top: 75px; /* تم تعديل هذه القيمة لتناسب الشعار بدون هامش */
 }
 
-/* Reset margin for the logo which is not a leaflet control */
 .leaflet-top.leaflet-right #logo-container {
     margin-top: 0;
 }
