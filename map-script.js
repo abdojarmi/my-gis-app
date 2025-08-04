@@ -44,7 +44,6 @@ function createGeoJsonLayer(data) {
                 fillOpacity: 0.85
             });
         },
-        // --- الجزء الذي تم تحديثه ---
         onEachFeature: function(feature, layer) {
             const props = feature.properties;
             if (props) {
@@ -53,27 +52,30 @@ function createGeoJsonLayer(data) {
                     const value = props[key];
                     let displayValue;
 
-                    // تحقق مما إذا كانت القيمة عبارة عن سلسلة نصية تبدأ بـ 'http'
                     if (typeof value === 'string' && value.toLowerCase().startsWith('http')) {
-                        // إذا كانت كذلك، قم بإنشاء رابط قابل للنقر
                         displayValue = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
                     } else {
-                        // وإلا، اعرض القيمة كما هي
                         displayValue = value || 'N/A';
                     }
 
                     popupContent += `<tr><td><strong>${formatKey(key)}:</strong></td><td>${displayValue}</td></tr>`;
                 }
                 popupContent += '</table>';
+                
+                // --- الجزء الذي تم تحديثه ---
+                // أضفنا "minWidth" لمنع الجدول من أن يصبح ضيقًا جدًا
                 layer.bindPopup(popupContent, { 
-                    maxHeight: 300, // يسمح بالتمرير العمودي للمحتوى الطويل
-                    maxWidth: 350  // يضمن وجود مساحة كافية للمحتوى
+                    maxHeight: 300, 
+                    minWidth: 320, // عرض أدنى للنافذة المنبثقة
+                    className: 'custom-popup' // إضافة فئة مخصصة لتنسيق أفضل
                 });
             }
         }
     });
 }
 
+
+// ... باقي الكود يبقى كما هو ...
 // 4. Fetch GeoJSON data and add it to the map
 fetch('CombinedDataIMAGINEPsycho2025.geojson')
     .then(response => response.json())
@@ -83,8 +85,6 @@ fetch('CombinedDataIMAGINEPsycho2025.geojson')
         createFunderFilter(originalData);
     })
     .catch(error => console.error('Error loading GeoJSON file:', error));
-
-// --- باقي ملف الجافا سكريبت يبقى كما هو ---
 
 // 5. Function to create the filter control
 function createFunderFilter(data) {
@@ -129,9 +129,9 @@ function updateMap() {
 }
 
 // 7. Create the map legend
-const legend = L.control({ position: 'topright' }); // تم تغيير الموقع إلى topright ليتناسب مع التعديل الأخير
+const legend = L.control({ position: 'topright' });
 legend.onAdd = function(map) {
-    const div = L.DomUtil.create('div', 'info legend leaflet-control'); // إضافة leaflet-control
+    const div = L.DomUtil.create('div', 'info legend leaflet-control');
     const funders = Object.keys(funderColors).filter(f => f !== 'Other/N/A');
     
     div.innerHTML += '<h4>Funded By</h4>';
