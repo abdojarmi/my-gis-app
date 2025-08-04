@@ -9,12 +9,12 @@ body {
   width: 100%;
 }
 
-/* تنسيق حاوية الفرز */
+/* Style for the filter container */
 #filter-container {
   position: absolute;
   top: 10px;
-  left: 50px; /* لتجنب تداخلها مع أزرار التكبير */
-  z-index: 1000; /* للتأكد من أنها فوق الخريطة */
+  left: 50px; /* Position it away from the zoom controls */
+  z-index: 1000; /* Ensure it's on top of the map */
   background-color: white;
   padding: 8px;
   border-radius: 5px;
@@ -23,10 +23,10 @@ body {
 }
 
 #filter-container label {
-  margin-left: 5px;
+  margin-right: 5px; /* Add space between label and select box */
 }
 
-/* تنسيق النافذة المنبثقة */
+/* Style for the popup content */
 .leaflet-popup-content table {
   width: 100%;
   border-collapse: collapse;
@@ -39,7 +39,7 @@ body {
   white-space: nowrap;
 }
 
-/* تنسيق مفتاح الخريطة */
+/* Style for the map legend */
 .info.legend {
   padding: 6px 8px;
   font: 14px/16px Arial, Helvetica, sans-serif;
@@ -54,7 +54,7 @@ body {
 .legend i {
   width: 18px;
   height: 18px;
-  float: right; /* ليتناسب مع التخطيط العربي */
-  margin-left: 8px;
+  float: left; /* Corrected for LTR layout */
+  margin-right: 8px; /* Corrected for LTR layout */
   opacity: 0.85;
 }
