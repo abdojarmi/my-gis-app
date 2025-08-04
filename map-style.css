@@ -62,7 +62,7 @@ body {
 /* Style for the logo container */
 #logo-container {
   position: absolute;
-  top: 10px;
+  top: 05px;
   right: 10px;
   z-index: 1001; /* Place it above other controls */
 }
