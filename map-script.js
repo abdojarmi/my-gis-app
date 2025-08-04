@@ -91,7 +91,7 @@ const LogoControl = L.Control.extend({
     options: { position: 'topright' },
     onAdd: function (map) {
         const container = L.DomUtil.create('div', 'leaflet-control-logo');
-        container.innerHTML = `<a href="https://highatlasfoundation.org/" target="_blank" rel="noopener noreferrer"><img src="haf-logo.png" alt="High Atlas Foundation Logo"></a>`;
+        container.innerHTML = `<a href="https://highatlasfoundation.org/" target="_blank" rel="noopener noreferrer"><img src="haf-logo.png.png" alt="High Atlas Foundation Logo"></a>`;
         return container;
     }
 });
