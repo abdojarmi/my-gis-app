@@ -26,7 +26,7 @@ function getColor(funder) {
     return funderColors[funder] || funderColors["Other/N/A"];
 }
 
-// Helper function to format property keys for display (e.g., 'Funded_by_whom_' -> 'Funded By Whom')
+// Helper function to format property keys for display
 function formatKey(key) {
     return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
 }
@@ -34,7 +34,6 @@ function formatKey(key) {
 // Function to create a GeoJSON layer with styling and popups
 function createGeoJsonLayer(data) {
     return L.geoJSON(data, {
-        // a. Style each point (marker)
         pointToLayer: function(feature, latlng) {
             return L.circleMarker(latlng, {
                 radius: 7,
@@ -45,17 +44,31 @@ function createGeoJsonLayer(data) {
                 fillOpacity: 0.85
             });
         },
-        // b. Add a popup to each point
+        // --- الجزء الذي تم تحديثه ---
         onEachFeature: function(feature, layer) {
             const props = feature.properties;
             if (props) {
-                // Dynamically build a table for the popup with all feature properties
                 let popupContent = '<table>';
                 for (const key in props) {
-                    popupContent += `<tr><td><strong>${formatKey(key)}:</strong></td><td>${props[key] || 'N/A'}</td></tr>`;
+                    const value = props[key];
+                    let displayValue;
+
+                    // تحقق مما إذا كانت القيمة عبارة عن سلسلة نصية تبدأ بـ 'http'
+                    if (typeof value === 'string' && value.toLowerCase().startsWith('http')) {
+                        // إذا كانت كذلك، قم بإنشاء رابط قابل للنقر
+                        displayValue = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
+                    } else {
+                        // وإلا، اعرض القيمة كما هي
+                        displayValue = value || 'N/A';
+                    }
+
+                    popupContent += `<tr><td><strong>${formatKey(key)}:</strong></td><td>${displayValue}</td></tr>`;
                 }
                 popupContent += '</table>';
-                layer.bindPopup(popupContent, { maxHeight: 300 }); // Set max height for scrollable popup
+                layer.bindPopup(popupContent, { 
+                    maxHeight: 300, // يسمح بالتمرير العمودي للمحتوى الطويل
+                    maxWidth: 350  // يضمن وجود مساحة كافية للمحتوى
+                });
             }
         }
     });
@@ -65,29 +78,26 @@ function createGeoJsonLayer(data) {
 fetch('CombinedDataIMAGINEPsycho2025.geojson')
     .then(response => response.json())
     .then(data => {
-        originalData = data; // Store the full original dataset
-        
-        // Initially display all points
+        originalData = data;
         geojsonLayer = createGeoJsonLayer(originalData).addTo(map);
-
-        // Create the funder filter control
         createFunderFilter(originalData);
     })
     .catch(error => console.error('Error loading GeoJSON file:', error));
 
-// 5. NEW: Function to create the filter control
+// --- باقي ملف الجافا سكريبت يبقى كما هو ---
+
+// 5. Function to create the filter control
 function createFunderFilter(data) {
     const filterContainer = document.getElementById('filter-container');
-    // Extract unique funder names and add an "All Funders" option
     const funders = ['All Funders', ...new Set(data.features.map(f => f.properties.Funded_by_whom_).filter(f => f))];
 
     const label = document.createElement('label');
     label.htmlFor = 'funder-filter';
-    label.innerText = 'Filter by Funder:'; // English label
+    label.innerText = 'Filter by Funder:';
 
     const select = document.createElement('select');
     select.id = 'funder-filter';
-    select.onchange = updateMap; // Update map when selection changes
+    select.onchange = updateMap;
 
     funders.forEach(funder => {
         const option = document.createElement('option');
@@ -100,37 +110,31 @@ function createFunderFilter(data) {
     filterContainer.appendChild(select);
 }
 
-// 6. NEW: Function to update the map based on the filter selection
+// 6. Function to update the map based on the filter selection
 function updateMap() {
     const selectedFunder = document.getElementById('funder-filter').value;
-
-    // Remove the old layer from the map
     if (geojsonLayer) {
         map.removeLayer(geojsonLayer);
     }
-
     let filteredData;
     if (selectedFunder === 'All Funders') {
-        filteredData = originalData; // Show all data
+        filteredData = originalData;
     } else {
-        // Filter data to show only the selected funder
         filteredData = {
             ...originalData,
             features: originalData.features.filter(f => f.properties.Funded_by_whom_ === selectedFunder)
         };
     }
-
-    // Create a new layer with the filtered data and add it to the map
     geojsonLayer = createGeoJsonLayer(filteredData).addTo(map);
 }
 
 // 7. Create the map legend
-const legend = L.control({ position: 'bottomright' });
+const legend = L.control({ position: 'topright' }); // تم تغيير الموقع إلى topright ليتناسب مع التعديل الأخير
 legend.onAdd = function(map) {
-    const div = L.DomUtil.create('div', 'info legend');
+    const div = L.DomUtil.create('div', 'info legend leaflet-control'); // إضافة leaflet-control
     const funders = Object.keys(funderColors).filter(f => f !== 'Other/N/A');
     
-    div.innerHTML += '<h4>Funded By</h4>'; // English title
+    div.innerHTML += '<h4>Funded By</h4>';
 
     for (let i = 0; i < funders.length; i++) {
         div.innerHTML += `<i style="background:${getColor(funders[i])}"></i> ${funders[i]}<br>`;
