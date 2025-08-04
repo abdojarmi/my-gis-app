@@ -12,74 +12,51 @@ body {
 /* ========================================= */
 /* === POPUP STYLES (for popup table) === */
 /* ========================================= */
-.custom-popup .leaflet-popup-content-wrapper {
-  border-radius: 8px;
-}
-.custom-popup .leaflet-popup-content {
-  margin: 0 !important;
-  padding: 0;
-  width: 100% !important;
-}
-.custom-popup table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.custom-popup td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #eee;
-  word-wrap: break-word;
-  vertical-align: top;
-}
-.custom-popup td:first-child {
-  width: 40%;
-  font-weight: bold;
-  color: #333;
-}
-.custom-popup tr:last-child td {
-  border-bottom: none;
-}
+.custom-popup .leaflet-popup-content-wrapper { border-radius: 8px; }
+.custom-popup .leaflet-popup-content { margin: 0 !important; padding: 0; width: 100% !important; }
+.custom-popup table { width: 100%; border-collapse: collapse; }
+.custom-popup td { padding: 8px 10px; border-bottom: 1px solid #eee; word-wrap: break-word; vertical-align: top; }
+.custom-popup td:first-child { width: 40%; font-weight: bold; color: #333; }
+.custom-popup tr:last-child td { border-bottom: none; }
 
 /* ========================================= */
-/* === CONTROLS IN TOP LEFT (Filter Box) === */
+/* === MAP CONTROLS STYLING === */
 /* ========================================= */
-#filter-container {
-  position: absolute;
-  top: 10px;
-  left: 50px;
-  z-index: 1000;
-  background-color: white;
+
+/* --- Top Left Controls --- */
+.leaflet-control-filter {
+  background: white;
   padding: 8px;
   border-radius: 5px;
   border: 1px solid #ccc;
   box-shadow: 0 1px 5px rgba(0,0,0,0.65);
 }
-#filter-container label {
+.leaflet-control-filter label {
   margin-right: 5px;
 }
+.leaflet-control-filter select {
+  border-radius: 3px;
+  border: 1px solid #aaa;
+}
 
-/* =========================================== */
-/* === CONTROLS IN TOP RIGHT (Logo & Legend) === */
-/* =========================================== */
 
-/* 1. Style for the Logo Control */
+/* --- Top Right Controls --- */
+/* 1. Logo Control */
 .leaflet-control-logo {
   background: rgba(255, 255, 255, 0.8);
   padding: 5px;
   border-radius: 5px;
   box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-  margin-bottom: 15px; /* <-- هذا هو السطر للتحكم اليدوي */
+  margin-bottom: 10px; /* المسافة بين الشعار والمفتاح */
+  border: none !important; /* إزالة الحدود الافتراضية */
 }
 .leaflet-control-logo img {
   width: 280px;
   height: auto;
   display: block;
 }
-.leaflet-control-logo.leaflet-control {
-    border: none;
-    background-clip: padding-box;
-}
 
-/* 2. Style for the Legend */
+/* 2. Legend Control */
 .info.legend {
   padding: 6px 8px;
   font: 14px/16px Arial, Helvetica, sans-serif;
@@ -87,20 +64,5 @@ body {
   box-shadow: 0 0 15px rgba(0,0,0,0.2);
   border-radius: 5px;
 }
-.legend h4 {
-  margin: 0 0 5px;
-  color: #333;
-}
-.legend i {
-  width: 18px;
-  height: 18px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.85;
-}
-
-/* 3. Position for the whole top-right container */
-.leaflet-top.leaflet-right {
-  top: 10px;
-  right: 10px;
-}
+.legend h4 { margin: 0 0 5px; color: #333; }
+.legend i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.85; }
