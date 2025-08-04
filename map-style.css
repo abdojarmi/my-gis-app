@@ -59,8 +59,6 @@ body {
   opacity: 0.85;
 }
 
-/* --- الأسطر الجديدة المضافة هنا --- */
-
 /* Style for the logo container */
 #logo-container {
   position: absolute;
@@ -81,4 +79,14 @@ body {
 
 #logo-container img:hover {
     transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+/* Move the legend down to make space for the logo above it */
+.leaflet-top.leaflet-right .leaflet-control {
+    margin-top: 95px; /* You can adjust this value if needed */
+}
+
+/* Reset margin for the logo which is not a leaflet control */
+.leaflet-top.leaflet-right #logo-container {
+    margin-top: 0;
 }
