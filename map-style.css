@@ -1,109 +1,146 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: sans-serif;
+// 1. Initialize map and set its view to Morocco
+const map = L.map('map').setView([31.7917, -7.0926], 6);
+
+// 2. Add base map layer (OpenStreetMap)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+// Variables to hold the GeoJSON layer and the original data
+let geojsonLayer;
+let originalData;
+
+// 3. Define colors for each funder
+const funderColors = {
+    "NED": "#e41a1c", "HAF": "#377eb8", "L'oreal": "#4daf4a", "Credit agricole": "#984ea3",
+    "FRE SKIN CARE": "#ff7f00", "MEPI": "#ffff33", "UNDP": "#a65628", "PUR Project (Carbon)": "#f781bf",
+    "F2F": "#999999", "University of Virginia": "#66c2a5", "US Embassy AEIF project": "#fc8d62",
+    "Personal funding": "#8da0cb", "German Watch/F2F": "#e78ac3", "Dakira": "#a6d854",
+    "European Union": "#ffd92f", "Princeton": "#e5c494", "Project HOPE": "#b3b3b3",
+    "YCC": "#fb8072", "SAMS": "#80b1d3", "George Fischer Foundation": "#fdb462",
+    "Muslim AID": "#bc80bd", "Taalim Delegation &JDC": "#ccebc5", "Other/N/A": "#808080"
+};
+
+function getColor(funder) {
+    return funderColors[funder] || funderColors["Other/N/A"];
 }
 
-#map {
-  height: 100vh;
-  width: 100%;
+function formatKey(key) {
+    return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
 }
 
-
-/* ===================================== */
-/* === POPUP STYLES (for popup table) === */
-/* ===================================== */
-.custom-popup .leaflet-popup-content-wrapper {
-  border-radius: 8px;
-}
-.custom-popup .leaflet-popup-content {
-  margin: 0 !important;
-  padding: 0;
-  width: 100% !important;
-}
-.custom-popup table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.custom-popup td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #eee;
-  word-wrap: break-word;
-  vertical-align: top;
-}
-.custom-popup td:first-child {
-  width: 40%;
-  font-weight: bold;
-  color: #333;
-}
-.custom-popup tr:last-child td {
-  border-bottom: none;
-}
-
-
-/* ========================================= */
-/* === CONTROLS IN TOP LEFT (Filter Box) === */
-/* ========================================= */
-#filter-container {
-  position: absolute;
-  top: 10px;
-  left: 50px;
-  z-index: 1000;
-  background-color: white;
-  padding: 8px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+function createGeoJsonLayer(data) {
+    return L.geoJSON(data, {
+        pointToLayer: function(feature, latlng) {
+            return L.circleMarker(latlng, {
+                radius: 7,
+                fillColor: getColor(feature.properties.Funded_by_whom_),
+                color: "#000",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.85
+            });
+        },
+        onEachFeature: function(feature, layer) {
+            const props = feature.properties;
+            if (props) {
+                let popupContent = '<table>';
+                for (const key in props) {
+                    const value = props[key];
+                    let displayValue;
+                    if (typeof value === 'string' && value.toLowerCase().startsWith('http')) {
+                        displayValue = `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`;
+                    } else {
+                        displayValue = value || 'N/A';
+                    }
+                    popupContent += `<tr><td><strong>${formatKey(key)}:</strong></td><td>${displayValue}</td></tr>`;
+                }
+                popupContent += '</table>';
+                layer.bindPopup(popupContent, { 
+                    maxHeight: 300, 
+                    minWidth: 320,
+                    className: 'custom-popup'
+                });
+            }
+        }
+    });
 }
 
-#filter-container label {
-  margin-right: 5px;
+fetch('CombinedDataIMAGINEPsycho2025.geojson')
+    .then(response => response.json())
+    .then(data => {
+        originalData = data;
+        geojsonLayer = createGeoJsonLayer(originalData).addTo(map);
+        createFunderFilter(originalData);
+    })
+    .catch(error => console.error('Error loading GeoJSON file:', error));
+
+function createFunderFilter(data) {
+    const filterContainer = document.getElementById('filter-container');
+    const funders = ['All Funders', ...new Set(data.features.map(f => f.properties.Funded_by_whom_).filter(f => f))];
+    const label = document.createElement('label');
+    label.htmlFor = 'funder-filter';
+    label.innerText = 'Filter by Funder:';
+    const select = document.createElement('select');
+    select.id = 'funder-filter';
+    select.onchange = updateMap;
+    funders.forEach(funder => {
+        const option = document.createElement('option');
+        option.value = funder;
+        option.innerText = funder;
+        select.appendChild(option);
+    });
+    filterContainer.appendChild(label);
+    filterContainer.appendChild(select);
 }
 
-
-/* =========================================== */
-/* === CONTROLS IN TOP RIGHT (Logo & Legend) === */
-/* =========================================== */
-
-/* 1. Style for the Logo */
-#logo-container {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 1001;
+function updateMap() {
+    const selectedFunder = document.getElementById('funder-filter').value;
+    if (geojsonLayer) {
+        map.removeLayer(geojsonLayer);
+    }
+    let filteredData;
+    if (selectedFunder === 'All Funders') {
+        filteredData = originalData;
+    } else {
+        filteredData = {
+            ...originalData,
+            features: originalData.features.filter(f => f.properties.Funded_by_whom_ === selectedFunder)
+        };
+    }
+    geojsonLayer = createGeoJsonLayer(filteredData).addTo(map);
 }
 
-#logo-container img {
-  width: 280px;
-  height: auto;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 5px; /* إعادة إضافة الهامش لمظهر أفضل */
-  border-radius: 5px;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-}
+// --- الجزء الذي تم تحديثه ---
 
-/* 2. General Style for the Legend */
-.info.legend {
-  padding: 6px 8px;
-  font: 14px/16px Arial, Helvetica, sans-serif;
-  background: rgba(255,255,255,0.8);
-  box-shadow: 0 0 15px rgba(0,0,0,0.2);
-  border-radius: 5px;
-}
-.legend h4 {
-  margin: 0 0 5px;
-  color: #333;
-}
-.legend i {
-  width: 18px;
-  height: 18px;
-  float: left;
-  margin-right: 8px;
-  opacity: 0.85;
-}
+// 1. إنشاء عنصر تحكم للشعار
+const logoControl = L.Control.extend({
+    options: {
+        position: 'topright'
+    },
+    onAdd: function(map) {
+        const container = L.DomUtil.create('div', 'leaflet-control-logo');
+        container.innerHTML = `
+            <a href="https://highatlasfoundation.org/" target="_blank" rel="noopener noreferrer">
+                <img src="haf-logo.png" alt="High Atlas Foundation Logo">
+            </a>
+        `;
+        return container;
+    }
+});
+map.addControl(new logoControl());
 
-/* --- الحل النهائي لمشكلة التداخل --- */
-/* 3. Push the Legend Down */
-.leaflet-top.leaflet-right .info.legend {
-    margin-top: 95px; /* هذا هو السطر الأهم. يمكنك تعديل الرقم للتحكم في المسافة */
-}
+
+// 2. إنشاء عنصر تحكم لمفتاح الخريطة
+const legend = L.control({ position: 'topright' });
+legend.onAdd = function(map) {
+    const div = L.DomUtil.create('div', 'info legend leaflet-control');
+    const funders = Object.keys(funderColors).filter(f => f !== 'Other/N/A');
+    div.innerHTML += '<h4>Funded By</h4>';
+    for (let i = 0; i < funders.length; i++) {
+        div.innerHTML += `<i style="background:${getColor(funders[i])}"></i> ${funders[i]}<br>`;
+    }
+    div.innerHTML += `<i style="background:${getColor('Other/N/A')}"></i> Other/N/A<br>`;
+    return div;
+};
+legend.addTo(map);
