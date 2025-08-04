@@ -9,12 +9,45 @@ body {
   width: 100%;
 }
 
+/* --- تنسيق النافذة المنبثقة المحدث --- */
+.custom-popup .leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+.custom-popup .leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0;
+  width: 100% !important;
+}
+.custom-popup table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.custom-popup td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee; /* استخدام خط سفلي فقط لزيادة الوضوح */
+  word-wrap: break-word;
+  vertical-align: top;
+}
+/* تحديد عرض العمود الأول (الحقول) */
+.custom-popup td:first-child {
+  width: 40%;
+  font-weight: bold;
+  color: #333;
+}
+/* إزالة الحدود من آخر صف في الجدول */
+.custom-popup tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* ... باقي التنسيقات تبقى كما هي ... */
+
 /* Style for the filter container */
 #filter-container {
   position: absolute;
   top: 10px;
-  left: 50px; /* Position it away from the zoom controls */
-  z-index: 1000; /* Ensure it's on top of the map */
+  left: 50px;
+  z-index: 1000;
   background-color: white;
   padding: 8px;
   border-radius: 5px;
@@ -23,35 +56,10 @@ body {
 }
 
 #filter-container label {
-  margin-right: 5px; /* Add space between label and select box */
+  margin-right: 5px;
 }
 
-/* Style for the popup content */
-.leaflet-popup-content-wrapper {
-  border-radius: 8px; /* يجعل الزوايا أكثر نعومة */
-}
-.leaflet-popup-content {
-  margin: 15px !important;
-}
-.leaflet-popup-content table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed; /* يمنع الأعمدة من أن تصبح أوسع من اللازم */
-}
-.leaflet-popup-content td {
-  padding: 5px;
-  border: 1px solid #ddd;
-  word-break: break-word; /* الأهم: يسمح بكسر الكلمات الطويلة جداً */
-}
-
-/* تمت إزالة خاصية "white-space: nowrap;" من هنا لجعل النص يلتف */
-.leaflet-popup-content strong {
-  color: #333;
-}
-
-
-/* Style for the map legend and logo */
-/* ... (باقي الكود يبقى كما هو) ... */
+/* Style for the map legend */
 .info.legend {
   padding: 6px 8px;
   font: 14px/16px Arial, Helvetica, sans-serif;
@@ -71,6 +79,7 @@ body {
   opacity: 0.85;
 }
 
+/* Style for the logo container */
 #logo-container {
   position: absolute;
   top: 0px;
@@ -92,8 +101,9 @@ body {
     transform: scale(1.05);
 }
 
+/* Move the legend down to make space for the logo */
 .leaflet-top.leaflet-right .leaflet-control {
-    margin-top: 75px; /* تم تعديل هذه القيمة لتناسب الشعار بدون هامش */
+    margin-top: 75px;
 }
 
 .leaflet-top.leaflet-right #logo-container {
