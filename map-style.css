@@ -9,10 +9,7 @@ body {
   width: 100%;
 }
 
-
-/* ===================================== */
-/* === POPUP STYLES (for popup table) === */
-/* ===================================== */
+/* --- تنسيق النافذة المنبثقة المحدث --- */
 .custom-popup .leaflet-popup-content-wrapper {
   border-radius: 8px;
 }
@@ -27,23 +24,25 @@ body {
 }
 .custom-popup td {
   padding: 8px 10px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #eee; /* استخدام خط سفلي فقط لزيادة الوضوح */
   word-wrap: break-word;
   vertical-align: top;
 }
+/* تحديد عرض العمود الأول (الحقول) */
 .custom-popup td:first-child {
   width: 40%;
   font-weight: bold;
   color: #333;
 }
+/* إزالة الحدود من آخر صف في الجدول */
 .custom-popup tr:last-child td {
   border-bottom: none;
 }
 
 
-/* ========================================= */
-/* === CONTROLS IN TOP LEFT (Filter Box) === */
-/* ========================================= */
+/* ... باقي التنسيقات تبقى كما هي ... */
+
+/* Style for the filter container */
 #filter-container {
   position: absolute;
   top: 10px;
@@ -60,29 +59,7 @@ body {
   margin-right: 5px;
 }
 
-
-/* =========================================== */
-/* === CONTROLS IN TOP RIGHT (Logo & Legend) === */
-/* =========================================== */
-
-/* 1. Style for the Logo */
-#logo-container {
-  position: absolute;
-  top: 02px;
-  right: 10px;
-  z-index: 1001;
-}
-
-#logo-container img {
-  width: 280px;
-  height: auto;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 0; /* إعادة إضافة الهامش لمظهر أفضل */
-  border-radius: 5px;
-  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-}
-
-/* 2. General Style for the Legend */
+/* Style for the map legend */
 .info.legend {
   padding: 6px 8px;
   font: 14px/16px Arial, Helvetica, sans-serif;
@@ -102,8 +79,33 @@ body {
   opacity: 0.85;
 }
 
-/* --- الحل النهائي لمشكلة التداخل --- */
-/* 3. Push the Legend Down */
-.leaflet-top.leaflet-right .info.legend {
-    margin-top: 95px; /* هذا هو السطر الأهم. يمكنك تعديل الرقم للتحكم في المسافة */
+/* Style for the logo container */
+#logo-container {
+  position: absolute;
+  top: 0px;
+  right: 10px;
+  z-index: 1001;
+}
+
+#logo-container img {
+  width: 280px;
+  height: auto;
+  background-color: rgba(255, 255, 255, 0.75);
+  padding: 0;
+  border-radius: 5px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+  transition: transform 0.2s ease-in-out;
+}
+
+#logo-container img:hover {
+    transform: scale(1.05);
+}
+
+/* Move the legend down to make space for the logo */
+.leaflet-top.leaflet-right .leaflet-control {
+    margin-top: 75px;
+}
+
+.leaflet-top.leaflet-right #logo-container {
+    margin-top: 0;
 }
