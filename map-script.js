@@ -27,9 +27,20 @@ function formatKey(key) { return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.
 
 // Function to create and style GeoJSON points and popups
 function createGeoJsonLayer(data) {
-    return L.geoJSON(data, {
+    // === SAFETY FILTER ADDED ===
+    // This removes features with no geometry to prevent errors
+    const validData = {
+        ...data,
+        features: data.features.filter(feature => feature.geometry && feature.geometry.coordinates && feature.geometry.coordinates.length > 0)
+    };
+
+    return L.geoJSON(validData, {
         pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-            radius: 7, fillColor: getColor(feature.properties.Funded_by_whom_), color: "#000",
+            radius: 7, 
+            // === CHANGE #1 ===
+            // Corrected field name access for coloring
+            fillColor: getColor(feature.properties["Funded by whom?"]), 
+            color: "#000",
             weight: 1, opacity: 1, fillOpacity: 0.85
         }),
         onEachFeature: (feature, layer) => {
@@ -37,8 +48,8 @@ function createGeoJsonLayer(data) {
             let popupContent = '<table>';
             for (const key in props) {
                 const value = props[key];
-                let displayValue = (typeof value === 'string' && value.toLowerCase().startsWith('http'))
-                    ? `<a href="${value}" target="_blank" rel="noopener noreferrer">${value}</a>`
+                let displayValue = (typeof value === 'string' && (value.toLowerCase().startsWith('http') || value.toLowerCase().startsWith('https:')))
+                    ? `<a href="${value}" target="_blank" rel="noopener noreferrer">Open Link</a>`
                     : (value || 'N/A');
                 popupContent += `<tr><td><strong>${formatKey(key)}:</strong></td><td>${displayValue}</td></tr>`;
             }
@@ -54,7 +65,11 @@ function updateMap(selectElement) {
     if (geojsonLayer) { map.removeLayer(geojsonLayer); }
     const filteredData = (selectedFunder === 'All Funders')
         ? originalData
-        : { ...originalData, features: originalData.features.filter(f => f.properties.Funded_by_whom_ === selectedFunder) };
+        : { ...originalData, features: originalData.features.filter(f => 
+            // === CHANGE #2 ===
+            // Corrected field name access for filtering
+            f.properties["Funded by whom?"] === selectedFunder
+        ) };
     geojsonLayer = createGeoJsonLayer(filteredData).addTo(map);
 }
 
@@ -67,7 +82,9 @@ const FilterControl = L.Control.extend({
     options: { position: 'topleft' },
     onAdd: function (map) {
         const container = L.DomUtil.create('div', 'leaflet-control-filter');
-        const funders = ['All Funders', ...new Set(originalData.features.map(f => f.properties.Funded_by_whom_).filter(f => f))];
+        // === CHANGE #3 ===
+        // Corrected field name access for creating the filter list
+        const funders = ['All Funders', ...new Set(originalData.features.map(f => f.properties["Funded by whom?"]).filter(f => f))];
         
         container.innerHTML = `
             <label for="funder-filter">Filter by Funder:</label>
@@ -76,10 +93,7 @@ const FilterControl = L.Control.extend({
             </select>
         `;
         
-        // Disable map interactions when clicking on the control
         L.DomEvent.disableClickPropagation(container);
-        
-        // Add event listener
         container.querySelector('select').onchange = (e) => updateMap(e.target);
         
         return container;
@@ -115,7 +129,10 @@ const LegendControl = L.Control.extend({
 
 // Main data fetching and map initialization
 fetch('CombinedDataIMAGINEPsycho2025.geojson')
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+        return response.json();
+    })
     .then(data => {
         originalData = data;
         geojsonLayer = createGeoJsonLayer(originalData).addTo(map);
@@ -125,4 +142,4 @@ fetch('CombinedDataIMAGINEPsycho2025.geojson')
         map.addControl(new LogoControl());
         map.addControl(new LegendControl());
     })
-    .catch(error => console.error('Error loading GeoJSON file:', error));
+    .catch(error => console.error('Error loading or processing GeoJSON file:', error));
