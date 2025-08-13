@@ -1,0 +1,8 @@
+{
+"type": "FeatureCollection",
+"name": "CombinedDataIMAGINEPsycho2025",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "ID": 211, "IMAGINE/Psychosocial": "1", "Name": "Earthquake survivors", "Province": "Al Haouz", "Region": "Marrakesh-Safi", "Commune": "Aghbar", "Village": "Igg", "Host Type Cooperative/Associations/ Group of women/Students": "Local Association", "IMAGINE Workshop Dates_Start": "29/07/2024", "Days": "(29-30-31)", "IMAGINE Workshop Dates_End": "31/07/2024", "Days_1": "(29-30-31)", "Benefeciaries (women)": "39", "Number of youth": "18", "Number of Men": 0, "Number of Kids": 60, "Followup Yes/No": "No", "Date of Followup": "No Follow-up", "The name of the workshop venue": "Assocaition space", "Need assistance Yes/No": "Yes", "Potential Needs": "Rebuilding houses, water", "Contact Information": "-", "Does Imagine workshop include other activities, what is it?": "Psychosocial+ kids activities", "Facilitator Name": "Hajar Elhajjami", "Funded by whom?": "Muslim AID", "Personal Impact": "Lean new tools and techniques to manage stress and anger", "Economic Impact": "No Economic Impact", "Latitude DD": 30.91531798, "Longitude DD": -8.426045, "Social Media Post": "No social Media post", "Link of Photos in Flicker": "Link", "Email address": "Bouchra@highatlasfoundation.org", "Flip chart": "-", "Report": "https://docs.google.com/document/d/1_2exwwf14nSC2Ip115TVfFFXVcB4cCgs/edit", "field_35": null, "field_36": null, "field_37": null, "field_38": null, "field_39": null }, "geometry": { "type": "Point", "coordinates": [ -8.426045, 30.91531798 ] } }
+]
+}
